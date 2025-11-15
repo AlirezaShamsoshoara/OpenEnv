@@ -13,21 +13,25 @@ multi-agent marlenv environment.
 """
 
 from uuid import uuid4
-import numpy as np
+
 import gym
-import marlenv
+import marlenv.envs  # Register marlenv environments with gym
+import numpy as np
+from marlenv.wrappers import SingleAgent
 
 # Support both in-repo and standalone imports
 try:
     # In-repo imports (when running from OpenEnv repository)
     from core.env_server.interfaces import Environment
     from core.env_server.types import State
+
     from ..models import SnakeAction, SnakeObservation
 except ImportError:
+    from models import SnakeAction, SnakeObservation
+
     # Standalone imports (when environment is standalone with openenv-core from pip)
     from openenv_core.env_server.interfaces import Environment
     from openenv_core.env_server.types import State
-    from models import SnakeAction, SnakeObservation
 
 
 class SnakeEnvironment(Environment):
@@ -95,7 +99,7 @@ class SnakeEnvironment(Environment):
         )
 
         # Wrap with SingleAgent wrapper to unwrap list returns
-        self.env = marlenv.wrappers.SingleAgent(self.env)
+        self.env = SingleAgent(self.env)
 
         # Track episode statistics
         self._episode_score = 0.0
@@ -160,8 +164,16 @@ class SnakeEnvironment(Environment):
         grid = self.env.grid.tolist() if hasattr(self.env, "grid") else []
 
         # Extract episode statistics from info if available
-        episode_fruits = info.get("episode_fruits", [self._episode_fruits])[0] if "episode_fruits" in info else self._episode_fruits
-        episode_kills = info.get("episode_kills", [self._episode_kills])[0] if "episode_kills" in info else self._episode_kills
+        episode_fruits = (
+            info.get("episode_fruits", [self._episode_fruits])[0]
+            if "episode_fruits" in info
+            else self._episode_fruits
+        )
+        episode_kills = (
+            info.get("episode_kills", [self._episode_kills])[0]
+            if "episode_kills" in info
+            else self._episode_kills
+        )
 
         return SnakeObservation(
             grid=grid,
