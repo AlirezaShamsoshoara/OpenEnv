@@ -21,9 +21,13 @@ COPY src/envs/snake_env/ /app/src/envs/snake_env/
 # Copy README for web interface documentation
 COPY src/envs/snake_env/README.md /app/README.md
 
+# Expose port
+EXPOSE 8000
+
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
 # Run the FastAPI server
-CMD ["uvicorn", "envs.snake_env.server.app:app", "--host", "0.0.0.0", "--port", "8000"]
+# CMD ["uvicorn", "envs.snake_env.server.app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m", "uvicorn", "envs.snake_env.server.app:app", "--host", "0.0.0.0", "--port", "8000"]
