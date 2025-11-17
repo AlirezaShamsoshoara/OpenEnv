@@ -16,6 +16,7 @@ An e2e framework for creating, deploying and using isolated execution environmen
 - [TRL example](https://huggingface.co/docs/trl/main/en/openenv)
 - [Unsloth Google Colab](https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/OpenEnv_gpt_oss_(20B)_Reinforcement_Learning_2048_Game.ipynb)
 - [ART example](https://art.openpipe.ai/integrations/openenv-integration)
+- [Oumi example](https://github.com/oumi-ai/oumi/blob/main/notebooks/Oumi%20-%20OpenEnv%20GRPO%20with%20trl.ipynb)
 
 ## Overview
 
@@ -262,6 +263,9 @@ See the [SkyRL example](https://skyrl.readthedocs.io/en/latest/examples/openenv.
 ### ART
 See the [ART example](https://art.openpipe.ai/integrations/openenv-integration) on how OpenEnv environments can be used to train models with ART.
 
+### Oumi
+See the [Oumi example](https://github.com/oumi-ai/oumi/blob/main/notebooks/Oumi%20-%20OpenEnv%20GRPO%20with%20trl.ipynb) on how OpenEnv environments can be used to train models with Oumi.
+
 ## Example Environments
 
 ### Echo Environment
@@ -281,7 +285,7 @@ Executes arbitrary Python code in a sandboxed environment. Features:
 
 See: [`src/envs/coding_env/README.md`](src/envs/coding_env/README.md)
 
-## Community Support & Acknowledgments 
+## Community Support & Acknowledgments
 This is an open and community centric project. If you would like to add your name here, please put up a pull request and tag @jspisak for review. Ty!!
 
 Supporters include: Meta-PyTorch, Hugging Face, [Patronus AI](https://patronus.ai), [Surge AI](https://surgehq.ai), [LastMile AI](https://www.lastmileai.dev), Unsloth AI, Reflection AI, vLLM, SkyRL (UC-Berkeley), LightningAI, Axolotl AI, Stanford Scaling Intelligence Lab, Mithril, [OpenMined](https://openmined.org/), [Fleet AI](https://fleetai.com) ..
