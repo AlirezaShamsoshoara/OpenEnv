@@ -18,9 +18,9 @@ Usage:
     python examples/snake_rl/test_snake_env.py --mode local --url http://localhost:8000
 """
 
+import argparse
 import sys
 from pathlib import Path
-import argparse
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
@@ -51,10 +51,14 @@ def test_reset(client):
     print(f"    - Snake alive: {result.observation.alive}")
     print(f"    - Episode score: {result.observation.episode_score}")
     print(f"    - Episode steps: {result.observation.episode_steps}")
-    print(f"    - Grid shape: {len(result.observation.grid)}x{len(result.observation.grid[0])}")
-    print(f"    - Observation shape: {len(result.observation.observation)}x"
-          f"{len(result.observation.observation[0])}x"
-          f"{len(result.observation.observation[0][0])}")
+    print(
+        f"    - Grid shape: {len(result.observation.grid)}x{len(result.observation.grid[0])}"
+    )
+    print(
+        f"    - Observation shape: {len(result.observation.observation)}x"
+        f"{len(result.observation.observation[0])}x"
+        f"{len(result.observation.observation[0][0])}"
+    )
     print(f"    - Initial reward: {result.reward}")
     print(f"    - Done: {result.done}")
 
@@ -68,19 +72,17 @@ def test_actions(client):
     # Reset first
     client.reset()
 
-    actions = {
-        0: "No-op (continue straight)",
-        1: "Turn left",
-        2: "Turn right"
-    }
+    actions = {0: "No-op (continue straight)", 1: "Turn left", 2: "Turn right"}
 
     print("\n  Testing each action type:")
     for action_id, action_name in actions.items():
         result = client.step(SnakeAction(action=action_id))
         print(f"    {action_id}: {action_name}")
-        print(f"       Alive: {result.observation.alive}, "
-              f"Reward: {result.reward:.2f}, "
-              f"Steps: {result.observation.episode_steps}")
+        print(
+            f"       Alive: {result.observation.alive}, "
+            f"Reward: {result.reward:.2f}, "
+            f"Steps: {result.observation.episode_steps}"
+        )
 
     print(f"\n  ✓ All actions executed successfully")
 
@@ -101,9 +103,13 @@ def test_observations(client):
 
     print(f"\n    2. Encoded Observation (agent's view):")
     print(f"       - Type: {type(obs.observation)}")
-    print(f"       - Shape: {len(obs.observation)}x{len(obs.observation[0])}x{len(obs.observation[0][0])}")
-    print(f"       - Channels: {len(obs.observation[0][0])} "
-          f"(walls, fruits, snake body parts)")
+    print(
+        f"       - Shape: {len(obs.observation)}x{len(obs.observation[0])}x{len(obs.observation[0][0])}"
+    )
+    print(
+        f"       - Channels: {len(obs.observation[0][0])} "
+        f"(walls, fruits, snake body parts)"
+    )
 
     print(f"\n    3. Episode Statistics:")
     print(f"       - Score: {obs.episode_score}")
@@ -135,6 +141,7 @@ def test_rewards(client, max_steps=50):
 
         # Random action (simple policy)
         import random
+
         action = random.randint(0, 2)
         result = client.step(SnakeAction(action=action))
 
@@ -143,12 +150,16 @@ def test_rewards(client, max_steps=50):
         # Check if fruit was collected (reward increased)
         if result.reward > 0 and result.observation.episode_fruits > fruits_collected:
             fruits_collected = result.observation.episode_fruits
-            print(f"    Step {step + 1}: 🍎 Fruit collected! "
-                  f"Reward: +{result.reward:.2f}")
+            print(
+                f"    Step {step + 1}: 🍎 Fruit collected! "
+                f"Reward: +{result.reward:.2f}"
+            )
 
         if result.done:
-            print(f"    Step {step + 1}: ☠️  Snake died! "
-                  f"Final penalty: {result.reward:.2f}")
+            print(
+                f"    Step {step + 1}: ☠️  Snake died! "
+                f"Final penalty: {result.reward:.2f}"
+            )
             break
 
     print(f"\n  Episode summary:")
@@ -208,6 +219,7 @@ def test_episode_termination(client, max_attempts=3):
         # Play until done or max steps
         while not result.done and steps < max_steps:
             import random
+
             action = random.randint(0, 2)
             result = client.step(SnakeAction(action=action))
             steps += 1
@@ -241,28 +253,31 @@ def test_multiple_episodes(client, num_episodes=3):
 
         while not result.done and steps < max_steps:
             import random
+
             action = random.randint(0, 2)
             result = client.step(SnakeAction(action=action))
             steps += 1
 
         stats = {
-            'episode': ep + 1,
-            'steps': result.observation.episode_steps,
-            'score': result.observation.episode_score,
-            'fruits': result.observation.episode_fruits,
-            'survived': result.observation.alive
+            "episode": ep + 1,
+            "steps": result.observation.episode_steps,
+            "score": result.observation.episode_score,
+            "fruits": result.observation.episode_fruits,
+            "survived": result.observation.alive,
         }
         episode_stats.append(stats)
 
-        print(f"    Episode {ep + 1}: {steps} steps, "
-              f"score={stats['score']:.2f}, "
-              f"fruits={stats['fruits']}, "
-              f"survived={stats['survived']}")
+        print(
+            f"    Episode {ep + 1}: {steps} steps, "
+            f"score={stats['score']:.2f}, "
+            f"fruits={stats['fruits']}, "
+            f"survived={stats['survived']}"
+        )
 
     print(f"\n  Episode statistics:")
-    avg_steps = sum(s['steps'] for s in episode_stats) / num_episodes
-    avg_score = sum(s['score'] for s in episode_stats) / num_episodes
-    avg_fruits = sum(s['fruits'] for s in episode_stats) / num_episodes
+    avg_steps = sum(s["steps"] for s in episode_stats) / num_episodes
+    avg_score = sum(s["score"] for s in episode_stats) / num_episodes
+    avg_fruits = sum(s["fruits"] for s in episode_stats) / num_episodes
 
     print(f"    - Average steps: {avg_steps:.1f}")
     print(f"    - Average score: {avg_score:.2f}")
@@ -274,7 +289,7 @@ def test_multiple_episodes(client, num_episodes=3):
 def main():
     """Run all tests."""
     parser = argparse.ArgumentParser(
-        description='Test Snake Environment',
+        description="Test Snake Environment",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -284,34 +299,36 @@ Examples:
   # Option 2: Use local server (start server first in another terminal)
   # Terminal 1: cd src/envs/snake_env && uv run --project . server
   # Terminal 2: python examples/snake_rl/test_snake_env.py --mode local --url http://localhost:8000
-        """
+        """,
     )
     parser.add_argument(
-        '--mode',
+        "--mode",
         type=str,
-        choices=['docker', 'local'],
-        default='docker',
-        help='Connection mode: docker (auto-start container) or local (connect to running server)'
+        choices=["docker", "local"],
+        default="docker",
+        help="Connection mode: docker (auto-start container) or local (connect to running server)",
     )
     parser.add_argument(
-        '--url',
+        "--url",
         type=str,
-        default='http://localhost:8000',
-        help='Server URL for local mode (default: http://localhost:8000)'
+        default="http://localhost:8000",
+        help="Server URL for local mode (default: http://localhost:8000)",
     )
 
     args = parser.parse_args()
 
     print_section("Snake Environment - Comprehensive Test Suite")
 
-    if args.mode == 'docker':
+    if args.mode == "docker":
         print("\n📦 Mode: Docker")
         print("  - Automatically starts Docker container")
         print("  - Runs tests against containerized environment")
         print("  - Automatically stops container when done")
         print("\n⚠️  Prerequisites:")
         print("  - Docker must be installed and running")
-        print("  - Image must be built: docker build -t snake-env:latest -f src/envs/snake_env/server/Dockerfile .")
+        print(
+            "  - Image must be built: docker build -t snake-env:latest -f src/envs/snake_env/server/Dockerfile ."
+        )
     else:
         print("\n🖥️  Mode: Local Server")
         print(f"  - Connecting to: {args.url}")
@@ -325,7 +342,7 @@ Examples:
 
     try:
         # Create client based on mode
-        if args.mode == 'docker':
+        if args.mode == "docker":
             print("\nStarting Docker container...")
             client = SnakeEnv.from_docker_image("snake-env:latest")
             print("✓ Container started successfully!\n")
@@ -371,7 +388,7 @@ Examples:
 
         # Cleanup
         print("\nCleaning up...")
-        if args.mode == 'docker':
+        if args.mode == "docker":
             client.close()
             print("✓ Container stopped and removed")
         else:
@@ -384,6 +401,7 @@ Examples:
     except Exception as e:
         print(f"\n❌ Test failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
