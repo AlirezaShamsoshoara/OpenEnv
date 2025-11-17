@@ -17,7 +17,6 @@ from uuid import uuid4
 import gym
 import marlenv.envs  # Register marlenv environments with gym
 import numpy as np
-from marlenv.wrappers import SingleAgent
 
 # Support both in-repo and standalone imports
 try:
@@ -32,6 +31,52 @@ except ImportError:
     # Standalone imports (when environment is standalone with openenv-core from pip)
     from openenv_core.env_server.interfaces import Environment
     from openenv_core.env_server.types import State
+
+
+class SingleAgentWrapper(gym.Wrapper):
+    """
+    Custom wrapper to convert multi-agent marlenv to single-agent.
+
+    This wrapper properly handles the conversion without triggering
+    gym 0.24.1's strict type checking on done flags.
+    """
+
+    def __init__(self, env):
+        super().__init__(env)
+        # Unwrap observation and action spaces for single agent
+        if hasattr(env.observation_space, '__getitem__'):
+            self.observation_space = env.observation_space[0]
+        if hasattr(env.action_space, '__getitem__'):
+            self.action_space = env.action_space[0]
+
+    def reset(self, **kwargs):
+        obs = self.env.reset(**kwargs)
+        # Remove first dimension if it's a multi-agent array (num_agents, H, W, C)
+        if hasattr(obs, 'shape') and len(obs.shape) == 4 and obs.shape[0] == 1:
+            return obs[0]  # Return (H, W, C)
+        # Return first agent's observation if it's a list
+        if isinstance(obs, list):
+            return obs[0]
+        return obs
+
+    def step(self, action):
+        # Wrap action in list for multi-agent env
+        obs, rewards, dones, info = self.env.step([action])
+
+        # Unwrap returns for single agent
+        # Handle observation: remove first dimension if shape is (1, H, W, C)
+        if hasattr(obs, 'shape') and len(obs.shape) == 4 and obs.shape[0] == 1:
+            obs = obs[0]  # Convert (1, H, W, C) -> (H, W, C)
+        elif isinstance(obs, list):
+            obs = obs[0]
+
+        reward = rewards[0] if isinstance(rewards, list) else rewards
+        done = dones[0] if isinstance(dones, list) else dones
+
+        # Ensure done is a boolean (not numpy bool)
+        done = bool(done)
+
+        return obs, reward, done, info
 
 
 class SnakeEnvironment(Environment):
@@ -80,13 +125,15 @@ class SnakeEnvironment(Environment):
                 "fruit": 1.0,
                 "kill": 0.0,
                 "lose": -1.0,
-                "win": 0.0,
-                "time": 0.0,
+                "win": 100.0,
+                "time": 0.001,
             }
 
         # Create the marlenv snake environment for single agent
-        self.env = gym.make(
-            "Snake-v1",
+        # Note: We don't use gym.make directly to avoid gym 0.24.1 wrappers
+        from marlenv.envs.snake_env import SnakeEnv as MarlenvSnake
+
+        self.base_env = MarlenvSnake(
             height=height,
             width=width,
             num_snakes=1,  # Single agent
@@ -98,8 +145,8 @@ class SnakeEnvironment(Environment):
             max_episode_steps=max_episode_steps,
         )
 
-        # Wrap with SingleAgent wrapper to unwrap list returns
-        self.env = SingleAgent(self.env)
+        # Wrap with our custom SingleAgent wrapper
+        self.env = SingleAgentWrapper(self.base_env)
 
         # Track episode statistics
         self._episode_score = 0.0
@@ -124,8 +171,8 @@ class SnakeEnvironment(Environment):
         # Convert observation to list format
         obs_list = obs.tolist() if isinstance(obs, np.ndarray) else obs
 
-        # Get the grid from the environment
-        grid = self.env.grid.tolist() if hasattr(self.env, "grid") else []
+        # Get the grid from the environment (access base env directly)
+        grid = self.base_env.grid.tolist() if hasattr(self.base_env, "grid") else []
 
         return SnakeObservation(
             grid=grid,
@@ -160,8 +207,8 @@ class SnakeEnvironment(Environment):
         # Convert observation to list format
         obs_list = obs.tolist() if isinstance(obs, np.ndarray) else obs
 
-        # Get the grid from the environment
-        grid = self.env.grid.tolist() if hasattr(self.env, "grid") else []
+        # Get the grid from the environment (access base env directly)
+        grid = self.base_env.grid.tolist() if hasattr(self.base_env, "grid") else []
 
         # Extract episode statistics from info if available
         episode_fruits = (
