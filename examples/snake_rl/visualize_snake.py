@@ -30,13 +30,13 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 from envs.snake_env import SnakeAction, SnakeEnv
 
 
-# Cell type constants (from marlenv)
+# Cell type constants (from marlenv.envs.snake_env.Cell)
 CELL_EMPTY = 0
 CELL_WALL = 1
 CELL_FRUIT = 2
-CELL_BODY = 3
-CELL_HEAD = 5
-CELL_TAIL = 4
+CELL_HEAD = 3  # Snake head
+CELL_BODY = 4  # Snake body segments
+CELL_TAIL = 5  # Snake tail
 
 
 def print_ascii_grid(grid):
@@ -186,6 +186,199 @@ def visualize_observation_channels(observation, title="Encoded Observation Chann
 
     plt.tight_layout()
     return fig, axes
+
+
+def record_episode_as_gif(client, num_steps=100, save_path='snake_episode.gif'):
+    """
+    Record an episode and save as animated GIF.
+
+    This function plays through an episode while collecting frames,
+    then saves them as an animated GIF file.
+
+    Args:
+        client: SnakeEnv client
+        num_steps: Maximum number of steps to record
+        save_path: Path to save the GIF file
+
+    Returns:
+        Path to the saved GIF file
+    """
+    print(f"\n  Recording episode to GIF (max {num_steps} steps)...")
+
+    # Get access to the base environment for rendering
+    # We need to reach through the client -> server -> base_env
+    # For now, we'll collect frames manually using the grid state
+
+    from PIL import Image
+    import numpy as np
+
+    frames = []
+    result = client.reset()
+
+    for step in range(num_steps):
+        if result.done:
+            break
+
+        # Convert grid to RGB image
+        grid = np.array(result.observation.grid)
+        height, width = grid.shape
+
+        # Create RGB image (scale up for visibility)
+        scale = 20  # Each cell is 20x20 pixels
+        img_array = np.zeros((height * scale, width * scale, 3), dtype=np.uint8)
+
+        for i in range(height):
+            for j in range(width):
+                cell = grid[i, j]
+                cell_type = cell % 10
+
+                # Color mapping
+                if cell_type == CELL_EMPTY:
+                    color = (240, 240, 240)  # Light gray
+                elif cell_type == CELL_WALL:
+                    color = (50, 50, 50)  # Dark gray
+                elif cell_type == CELL_FRUIT:
+                    color = (255, 0, 0)  # Red
+                elif cell_type == CELL_BODY:
+                    color = (0, 200, 0)  # Green
+                elif cell_type == CELL_HEAD:
+                    color = (0, 255, 0)  # Bright green
+                elif cell_type == CELL_TAIL:
+                    color = (0, 150, 0)  # Dark green
+                else:
+                    color = (200, 200, 200)  # Default gray
+
+                # Fill the scaled cell
+                img_array[i*scale:(i+1)*scale, j*scale:(j+1)*scale] = color
+
+        frames.append(Image.fromarray(img_array))
+
+        # Take random action
+        import random
+        action = random.randint(0, 2)
+        result = client.step(SnakeAction(action=action))
+
+    # Save as GIF
+    if frames:
+        frames[0].save(
+            save_path,
+            save_all=True,
+            append_images=frames[1:],
+            duration=200,  # 200ms per frame
+            loop=0
+        )
+        print(f"  ✓ GIF saved to: {save_path}")
+        print(f"    - Total frames: {len(frames)}")
+        print(f"    - Final score: {result.observation.episode_score:.2f}")
+        print(f"    - Fruits collected: {result.observation.episode_fruits}")
+        return save_path
+    else:
+        print("  ⚠️  No frames recorded")
+        return None
+
+
+def replay_episode_animation(client, num_steps=100):
+    """
+    Play an episode and show as matplotlib animation.
+
+    Args:
+        client: SnakeEnv client
+        num_steps: Maximum number of steps
+    """
+    print(f"\n  Playing episode with matplotlib animation...")
+
+    # Collect episode data
+    frames = []
+    result = client.reset()
+
+    for step in range(num_steps):
+        if result.done:
+            break
+
+        grid = np.array(result.observation.grid)
+        frames.append({
+            'grid': grid.copy(),
+            'score': result.observation.episode_score,
+            'fruits': result.observation.episode_fruits,
+            'step': step,
+            'alive': result.observation.alive
+        })
+
+        import random
+        action = random.randint(0, 2)
+        result = client.step(SnakeAction(action=action))
+
+    # Add final frame
+    grid = np.array(result.observation.grid)
+    frames.append({
+        'grid': grid,
+        'score': result.observation.episode_score,
+        'fruits': result.observation.episode_fruits,
+        'step': len(frames),
+        'alive': result.observation.alive
+    })
+
+    print(f"  ✓ Collected {len(frames)} frames")
+
+    # Create animation
+    fig, ax = plt.subplots(figsize=(10, 10))
+
+    def create_colored_grid(grid):
+        height, width = grid.shape
+        colored_grid = np.zeros((height, width, 3))
+
+        for i in range(height):
+            for j in range(width):
+                cell = grid[i, j]
+                cell_type = cell % 10
+
+                if cell_type == CELL_EMPTY:
+                    colored_grid[i, j] = [0.95, 0.95, 0.95]
+                elif cell_type == CELL_WALL:
+                    colored_grid[i, j] = [0.2, 0.2, 0.2]
+                elif cell_type == CELL_FRUIT:
+                    colored_grid[i, j] = [1.0, 0.0, 0.0]
+                elif cell_type == CELL_BODY:
+                    colored_grid[i, j] = [0.0, 0.8, 0.0]
+                elif cell_type == CELL_HEAD:
+                    colored_grid[i, j] = [0.0, 1.0, 0.0]
+                elif cell_type == CELL_TAIL:
+                    colored_grid[i, j] = [0.0, 0.6, 0.0]
+
+        return colored_grid
+
+    def update_frame(frame_idx):
+        ax.clear()
+        frame = frames[frame_idx]
+        colored_grid = create_colored_grid(frame['grid'])
+
+        ax.imshow(colored_grid, interpolation='nearest')
+        status = "🟢 ALIVE" if frame['alive'] else "🔴 DEAD"
+        ax.set_title(
+            f"Snake Game Replay - {status}\n"
+            f"Step: {frame['step']}, Score: {frame['score']:.1f}, Fruits: {frame['fruits']}",
+            fontsize=14,
+            fontweight='bold'
+        )
+        ax.set_xlabel('X Position')
+        ax.set_ylabel('Y Position')
+
+        return ax,
+
+    from matplotlib.animation import FuncAnimation
+    anim = FuncAnimation(
+        fig,
+        update_frame,
+        frames=len(frames),
+        interval=200,  # 200ms between frames
+        repeat=True,
+        blit=False
+    )
+
+    plt.tight_layout()
+    plt.show()
+
+    return anim
 
 
 def visualize_episode(client, num_steps=50, save_path=None):
@@ -415,7 +608,25 @@ Examples:
         print("=" * 70)
 
         fig4 = visualize_episode(client, num_steps=100)
-        plt.show(block=True)
+        plt.show(block=False)
+        plt.pause(2)
+
+        # Example 4: Save episode as GIF
+        print("\n" + "=" * 70)
+        print("  Example 4: Save Episode as Animated GIF")
+        print("=" * 70)
+
+        gif_path = record_episode_as_gif(client, num_steps=50, save_path='snake_game.gif')
+        if gif_path:
+            print(f"\n  ✓ You can open the GIF: open {gif_path}")
+
+        # Example 5: Replay episode with matplotlib animation
+        print("\n" + "=" * 70)
+        print("  Example 5: Replay Episode Animation")
+        print("=" * 70)
+
+        anim = replay_episode_animation(client, num_steps=50)
+        # Animation will play in the window
 
         print("\n" + "=" * 70)
         print("  Visualization Complete!")
@@ -424,6 +635,8 @@ Examples:
         print("    ✓ Grid state (ASCII and matplotlib)")
         print("    ✓ Encoded observation channels")
         print("    ✓ Episode statistics and progression")
+        print("    ✓ Animated GIF recordings")
+        print("    ✓ Matplotlib replay animations")
         print("\n  All visualization functions are available in this script")
 
         # Cleanup
