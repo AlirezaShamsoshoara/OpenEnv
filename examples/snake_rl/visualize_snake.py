@@ -16,12 +16,13 @@ Usage:
     python examples/snake_rl/visualize_snake.py --mode local --url http://localhost:8000
 """
 
+import argparse
 import sys
 from pathlib import Path
-import argparse
+
+import matplotlib.patches as mpatches
 
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 import numpy as np
 
 # Add src to path
@@ -50,9 +51,9 @@ def print_ascii_grid(grid):
         3-9 = snake body parts (different numbers for different snakes)
     """
     symbol_map = {
-        CELL_EMPTY: '.',
-        CELL_WALL: '#',
-        CELL_FRUIT: 'o',
+        CELL_EMPTY: ".",
+        CELL_WALL: "#",
+        CELL_FRUIT: "o",
     }
 
     print("\n  ASCII Grid:")
@@ -61,15 +62,15 @@ def print_ascii_grid(grid):
         for cell in row:
             cell_type = cell % 10  # Get base cell type
             if cell_type in symbol_map:
-                line += symbol_map[cell_type] + ' '
+                line += symbol_map[cell_type] + " "
             elif cell_type == CELL_BODY:
-                line += 'b '  # body
+                line += "b "  # body
             elif cell_type == CELL_TAIL:
-                line += 't '  # tail
+                line += "t "  # tail
             elif cell_type == CELL_HEAD:
-                line += 'H '  # head
+                line += "H "  # head
             else:
-                line += '? '
+                line += "? "
         print(f"    {line}")
 
 
@@ -108,26 +109,26 @@ def visualize_grid_matplotlib(grid, title="Snake Game Grid"):
             elif cell_type == CELL_TAIL:
                 colored_grid[i, j] = [0.0, 0.6, 0.0]  # Dark green
 
-    ax.imshow(colored_grid, interpolation='nearest')
+    ax.imshow(colored_grid, interpolation="nearest")
     ax.set_title(title, fontsize=16, pad=20)
-    ax.set_xlabel('X Position')
-    ax.set_ylabel('Y Position')
+    ax.set_xlabel("X Position")
+    ax.set_ylabel("Y Position")
 
     # Add grid lines
     ax.set_xticks(np.arange(-0.5, width, 1), minor=True)
     ax.set_yticks(np.arange(-0.5, height, 1), minor=True)
-    ax.grid(which='minor', color='gray', linestyle='-', linewidth=0.5)
+    ax.grid(which="minor", color="gray", linestyle="-", linewidth=0.5)
 
     # Create legend
     legend_elements = [
-        mpatches.Patch(color=[0.95, 0.95, 0.95], label='Empty'),
-        mpatches.Patch(color=[0.2, 0.2, 0.2], label='Wall'),
-        mpatches.Patch(color=[1.0, 0.0, 0.0], label='Fruit'),
-        mpatches.Patch(color=[0.0, 1.0, 0.0], label='Head'),
-        mpatches.Patch(color=[0.0, 0.8, 0.0], label='Body'),
-        mpatches.Patch(color=[0.0, 0.6, 0.0], label='Tail'),
+        mpatches.Patch(color=[0.95, 0.95, 0.95], label="Empty"),
+        mpatches.Patch(color=[0.2, 0.2, 0.2], label="Wall"),
+        mpatches.Patch(color=[1.0, 0.0, 0.0], label="Fruit"),
+        mpatches.Patch(color=[0.0, 1.0, 0.0], label="Head"),
+        mpatches.Patch(color=[0.0, 0.8, 0.0], label="Body"),
+        mpatches.Patch(color=[0.0, 0.6, 0.0], label="Tail"),
     ]
-    ax.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=(1.05, 1))
+    ax.legend(handles=legend_elements, loc="upper left", bbox_to_anchor=(1.05, 1))
 
     plt.tight_layout()
     return fig, ax
@@ -158,9 +159,14 @@ def visualize_observation_channels(observation, title="Encoded Observation Chann
         axes = [[ax] for ax in axes]
 
     channel_names = [
-        'Walls', 'Fruits',
-        'Own Head', 'Own Body', 'Own Tail',
-        'Other Head', 'Other Body', 'Other Tail'
+        "Walls",
+        "Fruits",
+        "Own Head",
+        "Own Body",
+        "Own Tail",
+        "Other Head",
+        "Other Body",
+        "Other Tail",
     ]
 
     for idx in range(channels):
@@ -169,12 +175,14 @@ def visualize_observation_channels(observation, title="Encoded Observation Chann
         ax = axes[row][col] if n_rows > 1 else axes[col]
 
         channel_data = obs_array[:, :, idx]
-        im = ax.imshow(channel_data, cmap='hot', interpolation='nearest')
+        im = ax.imshow(channel_data, cmap="hot", interpolation="nearest")
 
-        channel_name = channel_names[idx] if idx < len(channel_names) else f'Channel {idx}'
+        channel_name = (
+            channel_names[idx] if idx < len(channel_names) else f"Channel {idx}"
+        )
         ax.set_title(channel_name)
-        ax.set_xlabel('X')
-        ax.set_ylabel('Y')
+        ax.set_xlabel("X")
+        ax.set_ylabel("Y")
         plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
 
     # Hide extra subplots
@@ -182,13 +190,13 @@ def visualize_observation_channels(observation, title="Encoded Observation Chann
         row = idx // n_cols
         col = idx % n_cols
         ax = axes[row][col] if n_rows > 1 else axes[col]
-        ax.axis('off')
+        ax.axis("off")
 
     plt.tight_layout()
     return fig, axes
 
 
-def record_episode_as_gif(client, num_steps=100, save_path='snake_episode.gif'):
+def record_episode_as_gif(client, num_steps=100, save_path="snake_episode.gif"):
     """
     Record an episode and save as animated GIF.
 
@@ -205,12 +213,13 @@ def record_episode_as_gif(client, num_steps=100, save_path='snake_episode.gif'):
     """
     print(f"\n  Recording episode to GIF (max {num_steps} steps)...")
 
+    import numpy as np
+
     # Get access to the base environment for rendering
     # We need to reach through the client -> server -> base_env
     # For now, we'll collect frames manually using the grid state
 
     from PIL import Image
-    import numpy as np
 
     frames = []
     result = client.reset()
@@ -249,12 +258,15 @@ def record_episode_as_gif(client, num_steps=100, save_path='snake_episode.gif'):
                     color = (200, 200, 200)  # Default gray
 
                 # Fill the scaled cell
-                img_array[i*scale:(i+1)*scale, j*scale:(j+1)*scale] = color
+                img_array[i * scale : (i + 1) * scale, j * scale : (j + 1) * scale] = (
+                    color
+                )
 
         frames.append(Image.fromarray(img_array))
 
         # Take random action
         import random
+
         action = random.randint(0, 2)
         result = client.step(SnakeAction(action=action))
 
@@ -265,7 +277,7 @@ def record_episode_as_gif(client, num_steps=100, save_path='snake_episode.gif'):
             save_all=True,
             append_images=frames[1:],
             duration=200,  # 200ms per frame
-            loop=0
+            loop=0,
         )
         print(f"  ✓ GIF saved to: {save_path}")
         print(f"    - Total frames: {len(frames)}")
@@ -296,27 +308,32 @@ def replay_episode_animation(client, num_steps=100):
             break
 
         grid = np.array(result.observation.grid)
-        frames.append({
-            'grid': grid.copy(),
-            'score': result.observation.episode_score,
-            'fruits': result.observation.episode_fruits,
-            'step': step,
-            'alive': result.observation.alive
-        })
+        frames.append(
+            {
+                "grid": grid.copy(),
+                "score": result.observation.episode_score,
+                "fruits": result.observation.episode_fruits,
+                "step": step,
+                "alive": result.observation.alive,
+            }
+        )
 
         import random
+
         action = random.randint(0, 2)
         result = client.step(SnakeAction(action=action))
 
     # Add final frame
     grid = np.array(result.observation.grid)
-    frames.append({
-        'grid': grid,
-        'score': result.observation.episode_score,
-        'fruits': result.observation.episode_fruits,
-        'step': len(frames),
-        'alive': result.observation.alive
-    })
+    frames.append(
+        {
+            "grid": grid,
+            "score": result.observation.episode_score,
+            "fruits": result.observation.episode_fruits,
+            "step": len(frames),
+            "alive": result.observation.alive,
+        }
+    )
 
     print(f"  ✓ Collected {len(frames)} frames")
 
@@ -350,29 +367,30 @@ def replay_episode_animation(client, num_steps=100):
     def update_frame(frame_idx):
         ax.clear()
         frame = frames[frame_idx]
-        colored_grid = create_colored_grid(frame['grid'])
+        colored_grid = create_colored_grid(frame["grid"])
 
-        ax.imshow(colored_grid, interpolation='nearest')
-        status = "🟢 ALIVE" if frame['alive'] else "🔴 DEAD"
+        ax.imshow(colored_grid, interpolation="nearest")
+        status = "🟢 ALIVE" if frame["alive"] else "🔴 DEAD"
         ax.set_title(
             f"Snake Game Replay - {status}\n"
             f"Step: {frame['step']}, Score: {frame['score']:.1f}, Fruits: {frame['fruits']}",
             fontsize=14,
-            fontweight='bold'
+            fontweight="bold",
         )
-        ax.set_xlabel('X Position')
-        ax.set_ylabel('Y Position')
+        ax.set_xlabel("X Position")
+        ax.set_ylabel("Y Position")
 
-        return ax,
+        return (ax,)
 
     from matplotlib.animation import FuncAnimation
+
     anim = FuncAnimation(
         fig,
         update_frame,
         frames=len(frames),
         interval=200,  # 200ms between frames
         repeat=True,
-        blit=False
+        blit=False,
     )
 
     plt.tight_layout()
@@ -410,6 +428,7 @@ def visualize_episode(client, num_steps=50, save_path=None):
 
         # Random action
         import random
+
         action = random.randint(0, 2)
         result = client.step(SnakeAction(action=action))
 
@@ -419,7 +438,9 @@ def visualize_episode(client, num_steps=50, save_path=None):
         alive_status.append(1 if result.observation.alive else 0)
 
         if result.observation.episode_fruits > len(fruits) - 1:
-            print(f"    Step {step + 1}: Fruit collected! Total: {result.observation.episode_fruits}")
+            print(
+                f"    Step {step + 1}: Fruit collected! Total: {result.observation.episode_fruits}"
+            )
 
     # Create visualization
     fig = plt.figure(figsize=(16, 12))
@@ -449,31 +470,31 @@ def visualize_episode(client, num_steps=50, save_path=None):
             elif cell_type == CELL_TAIL:
                 colored_grid[i, j] = [0.0, 0.6, 0.0]
 
-    ax1.imshow(colored_grid, interpolation='nearest')
+    ax1.imshow(colored_grid, interpolation="nearest")
     status = "ALIVE" if result.observation.alive else "DEAD"
-    ax1.set_title(f'Final Game State - {status}', fontsize=14, fontweight='bold')
-    ax1.set_xlabel('X Position')
-    ax1.set_ylabel('Y Position')
+    ax1.set_title(f"Final Game State - {status}", fontsize=14, fontweight="bold")
+    ax1.set_xlabel("X Position")
+    ax1.set_ylabel("Y Position")
 
     # 2. Reward over time
     ax2 = fig.add_subplot(gs[0, 2])
-    ax2.plot(rewards, 'b-', linewidth=2)
-    ax2.set_title('Rewards per Step')
-    ax2.set_xlabel('Step')
-    ax2.set_ylabel('Reward')
+    ax2.plot(rewards, "b-", linewidth=2)
+    ax2.set_title("Rewards per Step")
+    ax2.set_xlabel("Step")
+    ax2.set_ylabel("Reward")
     ax2.grid(True, alpha=0.3)
 
     # 3. Cumulative score
     ax3 = fig.add_subplot(gs[1, 2])
-    ax3.plot(scores, 'g-', linewidth=2)
-    ax3.set_title('Cumulative Score')
-    ax3.set_xlabel('Step')
-    ax3.set_ylabel('Score')
+    ax3.plot(scores, "g-", linewidth=2)
+    ax3.set_title("Cumulative Score")
+    ax3.set_xlabel("Step")
+    ax3.set_ylabel("Score")
     ax3.grid(True, alpha=0.3)
 
     # 4. Episode statistics
     ax4 = fig.add_subplot(gs[2, :])
-    ax4.axis('off')
+    ax4.axis("off")
 
     stats_text = f"""
     EPISODE STATISTICS
@@ -487,18 +508,24 @@ def visualize_episode(client, num_steps=50, save_path=None):
     ═══════════════════════════════════════════════════════════════════
     """
 
-    ax4.text(0.5, 0.5, stats_text,
-             transform=ax4.transAxes,
-             fontsize=11,
-             verticalalignment='center',
-             horizontalalignment='center',
-             family='monospace',
-             bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.3))
+    ax4.text(
+        0.5,
+        0.5,
+        stats_text,
+        transform=ax4.transAxes,
+        fontsize=11,
+        verticalalignment="center",
+        horizontalalignment="center",
+        family="monospace",
+        bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.3),
+    )
 
-    plt.suptitle('Snake Environment Episode Visualization', fontsize=18, fontweight='bold')
+    plt.suptitle(
+        "Snake Environment Episode Visualization", fontsize=18, fontweight="bold"
+    )
 
     if save_path:
-        plt.savefig(save_path, dpi=150, bbox_inches='tight')
+        plt.savefig(save_path, dpi=150, bbox_inches="tight")
         print(f"\n  ✓ Visualization saved to: {save_path}")
 
     return fig
@@ -507,7 +534,7 @@ def visualize_episode(client, num_steps=50, save_path=None):
 def main():
     """Run visualization examples."""
     parser = argparse.ArgumentParser(
-        description='Visualize Snake Environment',
+        description="Visualize Snake Environment",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -517,20 +544,20 @@ Examples:
   # Option 2: Use local server
   # Terminal 1: cd src/envs/snake_env && uv run --project . server
   # Terminal 2: python examples/snake_rl/visualize_snake.py --mode local
-        """
+        """,
     )
     parser.add_argument(
-        '--mode',
+        "--mode",
         type=str,
-        choices=['docker', 'local'],
-        default='docker',
-        help='Connection mode: docker or local'
+        choices=["docker", "local"],
+        default="docker",
+        help="Connection mode: docker or local",
     )
     parser.add_argument(
-        '--url',
+        "--url",
         type=str,
-        default='http://localhost:8000',
-        help='Server URL for local mode'
+        default="http://localhost:8000",
+        help="Server URL for local mode",
     )
 
     args = parser.parse_args()
@@ -539,7 +566,7 @@ Examples:
     print("  Snake Environment - Visualization Examples")
     print("=" * 70)
 
-    if args.mode == 'docker':
+    if args.mode == "docker":
         print("\n📦 Mode: Docker")
         print("  Building and running containerized environment...")
     else:
@@ -547,7 +574,7 @@ Examples:
         print("  Connecting to running server...")
 
     try:
-        if args.mode == 'docker':
+        if args.mode == "docker":
             print("\nStarting Docker container...")
             client = SnakeEnv.from_docker_image("snake-env:latest")
             print("✓ Container started successfully!\n")
@@ -570,8 +597,7 @@ Examples:
         # Matplotlib grid visualization
         print("\n  Creating matplotlib visualization...")
         fig1, _ = visualize_grid_matplotlib(
-            result.observation.grid,
-            title="Snake Game - Initial State"
+            result.observation.grid, title="Snake Game - Initial State"
         )
         plt.show(block=False)
         plt.pause(2)
@@ -583,8 +609,7 @@ Examples:
 
         print_ascii_grid(result.observation.grid)
         fig2, _ = visualize_grid_matplotlib(
-            result.observation.grid,
-            title="Snake Game - After 5 Steps"
+            result.observation.grid, title="Snake Game - After 5 Steps"
         )
         plt.show(block=False)
         plt.pause(2)
@@ -594,9 +619,11 @@ Examples:
         print("  Example 2: Encoded Observation Channels")
         print("=" * 70)
 
-        print(f"\n  Observation shape: {len(result.observation.observation)}x"
-              f"{len(result.observation.observation[0])}x"
-              f"{len(result.observation.observation[0][0])}")
+        print(
+            f"\n  Observation shape: {len(result.observation.observation)}x"
+            f"{len(result.observation.observation[0])}x"
+            f"{len(result.observation.observation[0][0])}"
+        )
 
         fig3, _ = visualize_observation_channels(result.observation.observation)
         plt.show(block=False)
@@ -616,7 +643,9 @@ Examples:
         print("  Example 4: Save Episode as Animated GIF")
         print("=" * 70)
 
-        gif_path = record_episode_as_gif(client, num_steps=50, save_path='snake_game.gif')
+        gif_path = record_episode_as_gif(
+            client, num_steps=50, save_path="snake_game.gif"
+        )
         if gif_path:
             print(f"\n  ✓ You can open the GIF: open {gif_path}")
 
@@ -641,7 +670,7 @@ Examples:
 
         # Cleanup
         print("\nCleaning up...")
-        if args.mode == 'docker':
+        if args.mode == "docker":
             client.close()
             print("✓ Container stopped and removed")
         else:
@@ -652,6 +681,7 @@ Examples:
     except Exception as e:
         print(f"\n❌ Visualization failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
