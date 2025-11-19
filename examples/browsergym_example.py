@@ -1,21 +1,14 @@
 """BrowserGym MiniWoB example with Qwen deciding the next action.
 
-<<<<<<< HEAD
 This is an inference example for the BrowserGym environment. It uses the OpenAI
 client and a vision language model to decide the next action. We use Hugging Face
 Inference Providers API to access the model, but you can use any other provider that
 is compatible with the OpenAI API.
-=======
-This script loops an OpenEnv BrowserGym environment and asks a Hugging Face
-hosted Qwen model (via the OpenAI client) which BrowserGym action to take next.
->>>>>>> 2b9c417 (basic browser gym example)
 
 Prerequisites:
-- Clone the MiniWoB++ tasks repository.
-- Serve the HTML bundle with `python -m http.server 8888` inside the
-  `miniwob-plusplus/miniwob/html` directory.
-- Export the MiniWoB URL (must include the `/miniwob/` suffix):
-    `export MINIWOB_URL=http://host.docker.internal:8888/miniwob/`
+- (Optional) Export the MiniWoB URL if you are hosting the tasks yourself
+  (must include the `/miniwob/` suffix); the BrowserGym Docker image now
+  serves the MiniWoB bundle internally on port 8888.
 - Export your Hugging Face token for the router:
     `export HF_TOKEN=your_token_here`
 
@@ -23,42 +16,19 @@ Usage:
     python examples/browsergym_example.py
 """
 
+import base64
 import os
 import re
-<<<<<<< HEAD
-import base64
 import textwrap
 from io import BytesIO
-from typing import List, Optional, Dict
+from typing import Dict, List, Optional
 
-from openai import OpenAI
 import numpy as np
-from PIL import Image
 
 from envs.browsergym_env import BrowserGymAction, BrowserGymEnv
-=======
-import textwrap
-from typing import List, Optional, Dict
 
-import os
-import re
-import base64
-from io import BytesIO
-
-import numpy as np
+from openai import OpenAI
 from PIL import Image
-
-
-
-try:
-    from envs.browsergym_env import BrowserGymAction, BrowserGymEnv
-except ImportError as exc:  # pragma: no cover
-    raise RuntimeError(
-        "Unable to import envs.browsergym_env. "
-        "Run this script from the repository root."
-    ) from exc
-
->>>>>>> 2b9c417 (basic browser gym example)
 
 API_BASE_URL = "https://router.huggingface.co/v1"
 API_KEY = os.getenv("HF_TOKEN") or os.getenv("API_KEY")
@@ -128,10 +98,12 @@ def extract_clickable_elements(observation) -> List[Dict[str, str]]:
 
         bbox = props.get("bbox") or []
         bbox_str = ", ".join(bbox) if bbox else "?"
-        clickables.append({
-            "bid": str(bid),
-            "bbox": bbox_str,
-        })
+        clickables.append(
+            {
+                "bid": str(bid),
+                "bbox": bbox_str,
+            }
+        )
 
     # Keep a stable ordering for readability
     clickables.sort(key=lambda item: item["bid"])
@@ -139,16 +111,6 @@ def extract_clickable_elements(observation) -> List[Dict[str, str]]:
 
 
 def build_user_prompt(step: int, observation, history: List[str]) -> str:
-<<<<<<< HEAD
-=======
-    doc = (
-        observation.axtree_txt
-        or observation.pruned_html
-        or observation.text
-        or ""
-    )
-    doc = truncate_text(doc, MAX_DOM_CHARS)
->>>>>>> 2b9c417 (basic browser gym example)
     goal = observation.goal or "(not provided)"
     url = observation.url or "(unknown)"
     error_note = "Yes" if observation.last_action_error else "No"
@@ -170,15 +132,7 @@ def build_user_prompt(step: int, observation, history: List[str]) -> str:
         {build_history_lines(history)}
         Last action error: {error_note}
 
-<<<<<<< HEAD
         Available clickable element IDs: {actions_hint}
-=======
-        Available clickable element IDs:
-{actions_hint}
-
-        Page snapshot (truncated):
-        {doc}
->>>>>>> 2b9c417 (basic browser gym example)
 
         Reply with exactly one BrowserGym action string.
         """
@@ -217,37 +171,14 @@ def parse_model_action(response_text: str) -> str:
 
 
 def main() -> None:
-<<<<<<< HEAD
-
     client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
 
-    env = BrowserGymEnv.from_hub(
-        "browsergym-env:latest",
+    env = BrowserGymEnv.from_docker_image(
+        image="browsergym-env:latest",
         env_vars={
             "BROWSERGYM_BENCHMARK": "miniwob",
             "BROWSERGYM_TASK_NAME": "click-test",
         },
-        ports={8000: 8000},
-=======
-    try:
-        from openai import OpenAI  # type: ignore import
-    except ImportError as exc:  # pragma: no cover
-        raise RuntimeError(
-            "Missing optional dependency 'openai'. "
-            "Install it before running this script."
-        ) from exc
-
-    if not API_KEY:
-        raise RuntimeError(
-            "Missing HF_TOKEN or API_KEY environment variable for "
-            "Hugging Face Router access."
-        )
-
-    client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
-
-    env = BrowserGymEnv(
-        base_url="http://localhost:8000",
->>>>>>> 2b9c417 (basic browser gym example)
     )
 
     history: List[str] = []
@@ -295,9 +226,7 @@ def main() -> None:
                 response_text = completion.choices[0].message.content or ""
             # pylint: disable=broad-except
             except Exception as exc:  # noqa: BLE001
-                failure_msg = (
-                    f"Model request failed ({exc}). Using fallback action."
-                )
+                failure_msg = f"Model request failed ({exc}). Using fallback action."
                 print(failure_msg)
                 response_text = FALLBACK_ACTION
 
@@ -310,8 +239,7 @@ def main() -> None:
             reward = result.reward or 0.0
             error_flag = " ERROR" if observation.last_action_error else ""
             history_line = (
-                f"Step {step}: {action_str} -> reward {reward:+.2f}"
-                f"{error_flag}"
+                f"Step {step}: {action_str} -> reward {reward:+.2f}{error_flag}"
             )
             history.append(history_line)
             print(
