@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenApp + OpenEnv - Narrated Demo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary-color: #10b981;
+            --accent-color: #f59e0b;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --gradient-1: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            --gradient-2: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
+            --gradient-3: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+            --gradient-4: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 40%, rgba(245, 158, 11, 0.08) 0%, transparent 40%);
+            animation: bgRotate 30s linear infinite;
+        }
+
+        @keyframes bgRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Start screen */
+        .start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .start-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .start-logo {
+            width: 1200px;
+            height: 768px;
+            border-radius: 40px;
+            margin-bottom: 3rem;
+            box-shadow: 0 30px 100px rgba(99, 102, 241, 0.6);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .start-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 50%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .start-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            margin-bottom: 3rem;
+            text-align: center;
+            max-width: 500px;
+        }
+
+        .start-button {
+            padding: 1.25rem 3rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: white;
+            background: var(--gradient-1);
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 40px rgba(99, 102, 241, 0.4);
+        }
+
+        .start-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 50px rgba(99, 102, 241, 0.5);
+        }
+
+        .start-button:active {
+            transform: translateY(0);
+        }
+
+        .voice-note {
+            margin-top: 1.5rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Main presentation container */
+        .presentation {
+            display: none;
+            min-height: 100vh;
+        }
+
+        .presentation.active {
+            display: block;
+        }
+
+        /* Video stage */
+        .video-stage {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .stage-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .demo-counter {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .demo-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            transition: all 0.5s ease;
+        }
+
+        .demo-title.messenger { color: #a5b4fc; }
+        .demo-title.editor { color: #6ee7b7; }
+        .demo-title.calendar { color: #fcd34d; }
+        .demo-title.todo { color: #f9a8d4; }
+
+        /* Video container */
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            background: #000;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5),
+                        0 0 60px rgba(99, 102, 241, 0.2);
+            margin-bottom: 2rem;
+        }
+
+        .video-wrapper video {
+            width: 100%;
+            display: block;
+        }
+
+        .video-wrapper.hidden {
+            display: none;
+        }
+
+        /* Progress bar */
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--gradient-1);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        /* Narrator box */
+        .narrator-box {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            min-height: 150px;
+        }
+
+        .narrator-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .narrator-avatar {
+            width: 50px;
+            height: 50px;
+            background: var(--gradient-1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .narrator-avatar.speaking {
+            animation: speakPulse 0.5s ease-in-out infinite;
+        }
+
+        @keyframes speakPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.5); }
+            50% { transform: scale(1.05); box-shadow: 0 0 20px 5px rgba(99, 102, 241, 0.3); }
+        }
+
+        .narrator-info h4 {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .narrator-info span {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .narrator-text {
+            font-size: 1.25rem;
+            line-height: 1.8;
+            color: var(--text-primary);
+            min-height: 60px;
+        }
+
+        .narrator-text .cursor {
+            display: inline-block;
+            width: 3px;
+            height: 1.25rem;
+            background: var(--primary-color);
+            margin-left: 2px;
+            animation: blink 0.8s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        /* Demo indicators */
+        .demo-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .indicator.active {
+            background: var(--primary-color);
+            transform: scale(1.3);
+        }
+
+        .indicator:nth-child(1).active { background: #6366f1; }
+        .indicator:nth-child(2).active { background: #10b981; }
+        .indicator:nth-child(3).active { background: #f59e0b; }
+        .indicator:nth-child(4).active { background: #ec4899; }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .control-btn {
+            padding: 0.75rem 1.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: white;
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .control-btn:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--primary-color);
+        }
+
+        .control-btn.primary {
+            background: var(--gradient-1);
+            border: none;
+        }
+
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Ending screen */
+        .ending-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-dark);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .ending-screen.active {
+            display: flex;
+        }
+
+        .ending-title {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #10b981 0%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .ending-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .replay-btn {
+            padding: 1rem 2.5rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: white;
+            background: var(--gradient-1);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .replay-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Feature cards at the end */
+        .feature-summary {
+            display: flex;
+            gap: 2rem;
+            margin-top: 3rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 16px;
+            text-align: center;
+            width: 200px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .feature-card .icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card h5 {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-card p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+
+    <!-- Start Screen -->
+    <div class="start-screen" id="startScreen">
+        <img src="OpenApps_OpenEnv_RL.png" alt="OpenApp Logo" class="start-logo">
+        <h1 class="start-title">OpenApp + OpenEnv</h1>
+        <p class="start-subtitle">
+            An interactive narrated demo showcasing AI agents interacting with realistic web applications
+        </p>
+        <button class="start-button" onclick="startPresentation()">
+            ▶️ Start Narrated Demo
+        </button>
+        <div class="voice-note">
+            <span>🔊</span>
+            <span>Make sure your sound is on for the narration</span>
+        </div>
+    </div>
+
+    <!-- Main Presentation -->
+    <div class="presentation" id="presentation">
+        <div class="video-stage">
+            <div class="stage-header">
+                <div class="demo-counter" id="demoCounter">Demo 1 of 4</div>
+                <h2 class="demo-title messenger" id="demoTitle">💬 Messenger App</h2>
+            </div>
+
+            <!-- Video containers -->
+            <div class="video-wrapper" id="video1Wrapper">
+                <video id="video1" preload="auto">
+                    <source src="01-messages.mov" type="video/quicktime">
+                    <source src="01-messages.mov" type="video/mp4">
+                </video>
+            </div>
+            <div class="video-wrapper hidden" id="video2Wrapper">
+                <video id="video2" preload="auto">
+                    <source src="02-editor.mov" type="video/quicktime">
+                    <source src="02-editor.mov" type="video/mp4">
+                </video>
+            </div>
+            <div class="video-wrapper hidden" id="video3Wrapper">
+                <video id="video3" preload="auto">
+                    <source src="03-calendar.mov" type="video/quicktime">
+                    <source src="03-calendar.mov" type="video/mp4">
+                </video>
+            </div>
+            <div class="video-wrapper hidden" id="video4Wrapper">
+                <video id="video4" preload="auto">
+                    <source src="04-todo.mov" type="video/quicktime">
+                    <source src="04-todo.mov" type="video/mp4">
+                </video>
+            </div>
+
+            <!-- Progress bar -->
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+            </div>
+
+            <!-- Narrator box -->
+            <div class="narrator-box">
+                <div class="narrator-header">
+                    <div class="narrator-avatar" id="narratorAvatar">🤖</div>
+                    <div class="narrator-info">
+                        <h4>AI Narrator</h4>
+                        <span id="narratorStatus">Ready to begin...</span>
+                    </div>
+                </div>
+                <div class="narrator-text" id="narratorText">
+                    Click "Start Narrated Demo" to begin the presentation.
+                    <span class="cursor"></span>
+                </div>
+            </div>
+
+            <!-- Demo indicators -->
+            <div class="demo-indicators">
+                <div class="indicator active" data-demo="0"></div>
+                <div class="indicator" data-demo="1"></div>
+                <div class="indicator" data-demo="2"></div>
+                <div class="indicator" data-demo="3"></div>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <button class="control-btn" id="prevBtn" onclick="previousDemo()" disabled>
+                    ⏮️ Previous
+                </button>
+                <button class="control-btn primary" id="pauseBtn" onclick="togglePause()">
+                    ⏸️ Pause
+                </button>
+                <button class="control-btn" id="nextBtn" onclick="nextDemo()">
+                    Next ⏭️
+                </button>
+                <button class="control-btn" id="muteBtn" onclick="toggleMute()">
+                    🔊 Mute Narration
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ending Screen -->
+    <div class="ending-screen" id="endingScreen">
+        <h1 class="ending-title">🎉 Demo Complete!</h1>
+        <p class="ending-subtitle">Thank you for watching the OpenApp + OpenEnv demonstration</p>
+        <button class="replay-btn" onclick="restartPresentation()">
+            🔄 Replay Demo
+        </button>
+        <div class="feature-summary">
+            <div class="feature-card">
+                <div class="icon">💬</div>
+                <h5>Messenger</h5>
+                <p>Real-time chat interactions</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">💻</div>
+                <h5>Code Editor</h5>
+                <p>Syntax-highlighted coding</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">📅</div>
+                <h5>Calendar</h5>
+                <p>Event management</p>
+            </div>
+            <div class="feature-card">
+                <div class="icon">✅</div>
+                <h5>Todo Manager</h5>
+                <p>Task organization</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Demo configuration
+        const demos = [
+            {
+                id: 0,
+                title: "💬 Messenger App",
+                titleClass: "messenger",
+                videoId: "video1",
+                wrapperId: "video1Wrapper",
+                narrations: [
+                    {
+                        text: "Welcome to OpenApp plus OpenEnv! Let's start with the Messenger application.",
+                        delay: 0
+                    },
+                    {
+                        text: "Watch as our AI agent navigates to the messenger app and opens a conversation with Alice.",
+                        delay: 4000
+                    },
+                    {
+                        text: "The agent is now typing a message interactively, character by character, just like a real user would.",
+                        delay: 10000
+                    },
+                    {
+                        text: "Notice how the agent sends the message and receives a response. This demonstrates real-time chat capabilities.",
+                        delay: 18000
+                    }
+                ]
+            },
+            {
+                id: 1,
+                title: "💻 Code Editor",
+                titleClass: "editor",
+                videoId: "video2",
+                wrapperId: "video2Wrapper",
+                narrations: [
+                    {
+                        text: "Next, let's explore the Code Editor application.",
+                        delay: 0
+                    },
+                    {
+                        text: "The AI agent creates a new Python file called train.py and begins writing code.",
+                        delay: 4000
+                    },
+                    {
+                        text: "Watch as it writes a complete PyTorch neural network with syntax highlighting. The code includes a SimpleNet class with fully connected layers.",
+                        delay: 10000
+                    },
+                    {
+                        text: "The agent adds a training loop with forward pass, loss calculation, and backpropagation. Finally, it saves the file.",
+                        delay: 20000
+                    }
+                ]
+            },
+            {
+                id: 2,
+                title: "📅 Calendar App",
+                titleClass: "calendar",
+                videoId: "video3",
+                wrapperId: "video3Wrapper",
+                narrations: [
+                    {
+                        text: "Now let's see the Calendar application in action.",
+                        delay: 0
+                    },
+                    {
+                        text: "The agent opens the calendar and browses through scheduled events. Notice the clean monthly view.",
+                        delay: 4000
+                    },
+                    {
+                        text: "It switches between calendar and agenda views, demonstrating the flexibility of the interface.",
+                        delay: 10000
+                    },
+                    {
+                        text: "The agent navigates between months and views detailed event information. Perfect for scheduling and time management tasks.",
+                        delay: 16000
+                    }
+                ]
+            },
+            {
+                id: 3,
+                title: "✅ Todo Manager",
+                titleClass: "todo",
+                videoId: "video4",
+                wrapperId: "video4Wrapper",
+                narrations: [
+                    {
+                        text: "Finally, let's look at the Todo Manager application.",
+                        delay: 0
+                    },
+                    {
+                        text: "The AI agent opens the task list and browses through existing todo items.",
+                        delay: 4000
+                    },
+                    {
+                        text: "Watch as it opens the edit interface for individual tasks, allowing modifications to task details.",
+                        delay: 10000
+                    },
+                    {
+                        text: "The agent demonstrates complete CRUD operations on structured data. This concludes our demo of OpenApp plus OpenEnv!",
+                        delay: 16000
+                    }
+                ]
+            }
+        ];
+
+        // State variables
+        let currentDemo = 0;
+        let isPaused = false;
+        let isMuted = false;
+        let currentNarrationIndex = 0;
+        let narrationTimeouts = [];
+        let synth = window.speechSynthesis;
+        let currentUtterance = null;
+        let typingInterval = null;
+
+        // DOM elements
+        const startScreen = document.getElementById('startScreen');
+        const presentation = document.getElementById('presentation');
+        const endingScreen = document.getElementById('endingScreen');
+        const narratorText = document.getElementById('narratorText');
+        const narratorAvatar = document.getElementById('narratorAvatar');
+        const narratorStatus = document.getElementById('narratorStatus');
+        const demoTitle = document.getElementById('demoTitle');
+        const demoCounter = document.getElementById('demoCounter');
+        const progressBar = document.getElementById('progressBar');
+        const prevBtn = document.getElementById('prevBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const muteBtn = document.getElementById('muteBtn');
+        const indicators = document.querySelectorAll('.indicator');
+
+        // Start the presentation
+        function startPresentation() {
+            startScreen.classList.add('hidden');
+            presentation.classList.add('active');
+
+            // Small delay to ensure transition
+            setTimeout(() => {
+                playDemo(0);
+            }, 500);
+        }
+
+        // Play a specific demo
+        function playDemo(index) {
+            if (index < 0 || index >= demos.length) return;
+
+            // Clear any existing timeouts
+            clearAllTimeouts();
+
+            // Stop any current speech
+            synth.cancel();
+
+            currentDemo = index;
+            currentNarrationIndex = 0;
+            const demo = demos[index];
+
+            // Update UI
+            updateDemoUI(demo);
+
+            // Show correct video
+            showVideo(demo);
+
+            // Start video
+            const video = document.getElementById(demo.videoId);
+            video.currentTime = 0;
+            video.play();
+
+            // Update progress
+            updateProgress(video);
+
+            // Start narrations
+            scheduleNarrations(demo);
+
+            // Handle video end
+            video.onended = () => {
+                if (currentDemo < demos.length - 1) {
+                    setTimeout(() => {
+                        nextDemo();
+                    }, 2000);
+                } else {
+                    showEnding();
+                }
+            };
+        }
+
+        // Update demo UI elements
+        function updateDemoUI(demo) {
+            demoTitle.textContent = demo.title;
+            demoTitle.className = 'demo-title ' + demo.titleClass;
+            demoCounter.textContent = `Demo ${demo.id + 1} of ${demos.length}`;
+
+            // Update indicators
+            indicators.forEach((ind, i) => {
+                ind.classList.toggle('active', i === demo.id);
+            });
+
+            // Update buttons
+            prevBtn.disabled = demo.id === 0;
+
+            narratorStatus.textContent = 'Narrating...';
+        }
+
+        // Show the correct video
+        function showVideo(demo) {
+            // Hide all videos
+            demos.forEach(d => {
+                document.getElementById(d.wrapperId).classList.add('hidden');
+                document.getElementById(d.videoId).pause();
+            });
+
+            // Show current video
+            document.getElementById(demo.wrapperId).classList.remove('hidden');
+        }
+
+        // Update progress bar based on video time
+        function updateProgress(video) {
+            const updateBar = () => {
+                if (!isPaused) {
+                    const percent = (video.currentTime / video.duration) * 100;
+                    progressBar.style.width = percent + '%';
+                }
+                if (!video.ended) {
+                    requestAnimationFrame(updateBar);
+                }
+            };
+            requestAnimationFrame(updateBar);
+        }
+
+        // Schedule all narrations for a demo
+        function scheduleNarrations(demo) {
+            demo.narrations.forEach((narration, index) => {
+                const timeout = setTimeout(() => {
+                    if (!isPaused) {
+                        playNarration(narration.text, index);
+                    }
+                }, narration.delay);
+                narrationTimeouts.push(timeout);
+            });
+        }
+
+        // Play a single narration
+        function playNarration(text, index) {
+            currentNarrationIndex = index;
+
+            // Type the text
+            typeText(text);
+
+            // Speak the text (if not muted)
+            if (!isMuted) {
+                speak(text);
+            }
+        }
+
+        // Type text effect
+        function typeText(text) {
+            if (typingInterval) clearInterval(typingInterval);
+
+            narratorText.innerHTML = '';
+            let charIndex = 0;
+
+            typingInterval = setInterval(() => {
+                if (charIndex < text.length) {
+                    narratorText.innerHTML = text.substring(0, charIndex + 1) + '<span class="cursor"></span>';
+                    charIndex++;
+                } else {
+                    clearInterval(typingInterval);
+                    narratorText.innerHTML = text + '<span class="cursor"></span>';
+                }
+            }, 30);
+        }
+
+        // Text-to-speech
+        function speak(text) {
+            synth.cancel(); // Stop any current speech
+
+            currentUtterance = new SpeechSynthesisUtterance(text);
+            currentUtterance.rate = 0.95;
+            currentUtterance.pitch = 1;
+            currentUtterance.volume = 1;
+
+            // Try to get a nice voice
+            const voices = synth.getVoices();
+            const preferredVoices = voices.filter(v =>
+                v.name.includes('Samantha') ||
+                v.name.includes('Google') ||
+                v.name.includes('Alex') ||
+                v.lang.startsWith('en')
+            );
+            if (preferredVoices.length > 0) {
+                currentUtterance.voice = preferredVoices[0];
+            }
+
+            currentUtterance.onstart = () => {
+                narratorAvatar.classList.add('speaking');
+                narratorStatus.textContent = 'Speaking...';
+            };
+
+            currentUtterance.onend = () => {
+                narratorAvatar.classList.remove('speaking');
+                narratorStatus.textContent = 'Narrating...';
+            };
+
+            synth.speak(currentUtterance);
+        }
+
+        // Clear all scheduled timeouts
+        function clearAllTimeouts() {
+            narrationTimeouts.forEach(t => clearTimeout(t));
+            narrationTimeouts = [];
+        }
+
+        // Navigation functions
+        function nextDemo() {
+            if (currentDemo < demos.length - 1) {
+                playDemo(currentDemo + 1);
+            }
+        }
+
+        function previousDemo() {
+            if (currentDemo > 0) {
+                playDemo(currentDemo - 1);
+            }
+        }
+
+        // Toggle pause
+        function togglePause() {
+            isPaused = !isPaused;
+            const video = document.getElementById(demos[currentDemo].videoId);
+
+            if (isPaused) {
+                video.pause();
+                synth.pause();
+                pauseBtn.innerHTML = '▶️ Resume';
+                narratorStatus.textContent = 'Paused';
+            } else {
+                video.play();
+                synth.resume();
+                pauseBtn.innerHTML = '⏸️ Pause';
+                narratorStatus.textContent = 'Narrating...';
+            }
+        }
+
+        // Toggle mute
+        function toggleMute() {
+            isMuted = !isMuted;
+
+            if (isMuted) {
+                synth.cancel();
+                muteBtn.innerHTML = '🔇 Unmute';
+            } else {
+                muteBtn.innerHTML = '🔊 Mute Narration';
+            }
+        }
+
+        // Show ending screen
+        function showEnding() {
+            presentation.classList.remove('active');
+            endingScreen.classList.add('active');
+
+            // Final narration
+            if (!isMuted) {
+                setTimeout(() => {
+                    speak("Thank you for watching! OpenApp plus OpenEnv brings realistic web environments to AI agent research. We hope you enjoyed this demonstration!");
+                }, 500);
+            }
+        }
+
+        // Restart presentation
+        function restartPresentation() {
+            endingScreen.classList.remove('active');
+            presentation.classList.add('active');
+            playDemo(0);
+        }
+
+        // Indicator click handlers
+        indicators.forEach(indicator => {
+            indicator.addEventListener('click', () => {
+                const demoIndex = parseInt(indicator.dataset.demo);
+                playDemo(demoIndex);
+            });
+        });
+
+        // Preload voices
+        speechSynthesis.onvoiceschanged = () => {
+            synth.getVoices();
+        };
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (startScreen.classList.contains('hidden')) {
+                    togglePause();
+                } else {
+                    startPresentation();
+                }
+            }
+            if (e.code === 'ArrowRight') nextDemo();
+            if (e.code === 'ArrowLeft') previousDemo();
+            if (e.code === 'KeyM') toggleMute();
+        });
+    </script>
+</body>
+</html>
