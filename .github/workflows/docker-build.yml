@@ -88,7 +88,8 @@ jobs:
           - name: snake-env
             dockerfile: envs/snake_env/server/Dockerfile
           - name: openapp-env
-            dockerfile: envs/openapp_env/server/Dockerfile
+            dockerfile: server/Dockerfile
+            context: envs/openapp_env
 
     steps:
       - name: Checkout code
@@ -116,7 +117,7 @@ jobs:
       - name: Build and push environment image
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ${{ matrix.image.context || '.' }}
           file: ${{ matrix.image.dockerfile }}
           push: true
           platforms: linux/amd64,linux/arm64
