@@ -44,7 +44,6 @@ This PR adds screenshot capture functionality to the OpenApp environment and fix
 
 ### Other
 
-- Added `examples/.gitignore` to ignore screenshot test output
 - Added beartype pin to main `pyproject.toml` for local development
 
 ## Test Plan
