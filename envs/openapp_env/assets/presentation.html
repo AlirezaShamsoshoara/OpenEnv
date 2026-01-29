@@ -1,0 +1,1956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenEnv Presentation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary-color: #10b981;
+            --accent-color: #f59e0b;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --gradient-1: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            --gradient-2: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
+            --gradient-3: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+            --gradient-4: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* Slides Container */
+        .slides-container {
+            display: flex;
+            width: 300vw;
+            height: 100vh;
+            transition: transform 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+        }
+
+        .slides-container.slide-2 {
+            transform: translateX(-100vw);
+        }
+
+        .slides-container.slide-3 {
+            transform: translateX(-200vw);
+        }
+
+        /* Individual Slide */
+        .slide-page {
+            width: 100vw;
+            height: 100vh;
+            flex-shrink: 0;
+            overflow-y: auto;
+        }
+
+        /* Navigation Buttons */
+        .nav-buttons {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 1000;
+        }
+
+        .nav-btn {
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
+        }
+
+        .nav-btn:active {
+            transform: translateY(-2px) scale(1.02);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .nav-btn:disabled:hover {
+            transform: none;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Slide Indicators */
+        .slide-indicators {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 1000;
+        }
+
+        .slide-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .slide-dot:hover {
+            background: rgba(255, 255, 255, 0.5);
+            transform: scale(1.2);
+        }
+
+        .slide-dot.active {
+            background: #667eea;
+            transform: scale(1.3);
+            border-color: white;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.6);
+        }
+
+        /* ==================== SLIDE 1 STYLES ==================== */
+
+        /* Keyframe Animations */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInLeft {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes slideArrow {
+            0%, 100% { transform: translateX(0); opacity: 1; }
+            50% { transform: translateX(10px); opacity: 0.7; }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        @keyframes borderGlow {
+            0%, 100% { border-color: #ffc107; }
+            50% { border-color: #ff9800; }
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .slide-1 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #667eea 100%);
+            background-size: 200% 200%;
+            animation: gradientShift 10s ease infinite;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            padding-bottom: 100px;
+            overflow: hidden;
+        }
+
+        .slide-1 .slide-content {
+            background: white;
+            border-radius: 20px;
+            padding: 25px 40px;
+            max-width: 1400px;
+            width: 100%;
+            max-height: calc(100vh - 130px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: fadeInUp 0.8s ease-out;
+            overflow: hidden;
+        }
+
+        .slide-1 .header {
+            text-align: center;
+            margin-bottom: 15px;
+            animation: fadeInUp 0.8s ease-out 0.2s backwards;
+        }
+
+        /* Team Profiles */
+        .team-profiles {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .profile-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .profile-img {
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #667eea;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .profile-item:hover .profile-img {
+            border-color: #764ba2;
+            box-shadow: 0 8px 25px rgba(118, 75, 162, 0.4);
+            transform: scale(1.1);
+        }
+
+        .profile-name {
+            font-size: 11px;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .slide-1 .header h1 {
+            font-size: 36px;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+            font-weight: 700;
+            background: linear-gradient(90deg, #667eea, #764ba2, #667eea);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 3s linear infinite;
+        }
+
+        .slide-1 .header .tagline {
+            font-size: 18px;
+            color: #667eea;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .slide-1 .header .tagline:hover {
+            transform: scale(1.02);
+            color: #764ba2;
+        }
+
+        .slide-1 .problem {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 12px 18px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            animation: fadeInLeft 0.8s ease-out 0.4s backwards, borderGlow 2s ease-in-out infinite;
+            transition: all 0.3s ease;
+        }
+
+        .slide-1 .problem:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 20px rgba(255, 193, 7, 0.3);
+        }
+
+        .slide-1 .problem h2 {
+            color: #856404;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .slide-1 .problem p {
+            color: #856404;
+            line-height: 1.4;
+            font-size: 14px;
+        }
+
+        .slide-1 .flow-diagram {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 12px 0;
+            padding: 15px;
+            background: linear-gradient(to right, #f8f9fa, #e9ecef);
+            border-radius: 12px;
+            animation: fadeInUp 0.8s ease-out 0.6s backwards;
+        }
+
+        .slide-1 .flow-box {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin: 0 8px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+
+        .slide-1 .flow-box:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
+        }
+
+        .slide-1 .flow-box h3 {
+            font-size: 16px;
+            color: #667eea;
+            margin-bottom: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .slide-1 .flow-box:hover h3 {
+            transform: scale(1.1);
+        }
+
+        .slide-1 .flow-box p {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.3;
+        }
+
+        .slide-1 .arrow {
+            font-size: 28px;
+            color: #667eea;
+            font-weight: bold;
+            animation: slideArrow 1.5s ease-in-out infinite;
+        }
+
+        .slide-1 .pillars {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 12px 0;
+        }
+
+        .slide-1 .pillar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-size: 200% 200%;
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+
+        .slide-1 .pillar:nth-child(1) { animation: fadeInUp 0.8s ease-out 0.8s backwards; }
+        .slide-1 .pillar:nth-child(2) { animation: fadeInUp 0.8s ease-out 1s backwards; }
+        .slide-1 .pillar:nth-child(3) { animation: fadeInUp 0.8s ease-out 1.2s backwards; }
+
+        .slide-1 .pillar:hover {
+            transform: translateY(-10px) scale(1.03);
+            box-shadow: 0 20px 50px rgba(102, 126, 234, 0.5);
+        }
+
+        .slide-1 .pillar h3 {
+            font-size: 15px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .slide-1 .pillar-icon {
+            font-size: 20px;
+            margin-right: 8px;
+            display: inline-block;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .slide-1 .pillar:nth-child(2) .pillar-icon { animation-delay: 0.5s; }
+        .slide-1 .pillar:nth-child(3) .pillar-icon { animation-delay: 1s; }
+
+        .slide-1 .pillar ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .slide-1 .pillar li {
+            margin: 5px 0;
+            padding-left: 18px;
+            position: relative;
+            line-height: 1.3;
+            font-size: 12px;
+            opacity: 0.9;
+            transition: all 0.3s ease;
+        }
+
+        .slide-1 .pillar li:hover {
+            opacity: 1;
+            transform: translateX(5px);
+        }
+
+        .slide-1 .pillar li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .slide-1 .pillar li:hover:before {
+            transform: scale(1.3);
+        }
+
+        .slide-1 .vision {
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+            background-size: 200% 200%;
+            color: white;
+            border-radius: 12px;
+            margin-top: 12px;
+            animation: fadeInUp 0.8s ease-out 1.4s backwards;
+            transition: all 0.4s ease;
+            cursor: pointer;
+        }
+
+        .slide-1 .vision:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .slide-1 .vision h2 {
+            font-size: 18px;
+            margin-bottom: 6px;
+        }
+
+        .slide-1 .vision p {
+            font-size: 14px;
+            color: #ffc107;
+            font-weight: 500;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .slide-1 .meta-apps {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 8px;
+            max-width: 180px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .slide-1 .app-badge {
+            background: white;
+            color: #667eea;
+            padding: 4px 10px;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 11px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+
+        .slide-1 .app-badge:hover {
+            transform: scale(1.15) rotate(-2deg);
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .slide-1 .app-badge:nth-child(1) { animation: fadeInUp 0.5s ease-out 1.6s backwards; }
+        .slide-1 .app-badge:nth-child(2) { animation: fadeInUp 0.5s ease-out 1.7s backwards; }
+        .slide-1 .app-badge:nth-child(3) { animation: fadeInUp 0.5s ease-out 1.8s backwards; }
+        .slide-1 .app-badge:nth-child(4) { animation: fadeInUp 0.5s ease-out 1.9s backwards; }
+
+        /* ==================== SLIDE 2 STYLES ==================== */
+
+        /* Animated background */
+        .slide-2-page {
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            position: relative;
+        }
+
+        .bg-animation {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 40%, rgba(245, 158, 11, 0.08) 0%, transparent 40%);
+            animation: bgRotate 30s linear infinite;
+        }
+
+        @keyframes bgRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Demo presentation */
+        .demo-presentation {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            padding-bottom: 150px;
+        }
+
+        .video-stage {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .stage-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .demo-counter {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .demo-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            transition: all 0.5s ease;
+        }
+
+        .demo-title.messenger { color: #a5b4fc; }
+        .demo-title.editor { color: #6ee7b7; }
+        .demo-title.calendar { color: #fcd34d; }
+        .demo-title.todo { color: #f9a8d4; }
+
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            background: #000;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5),
+                        0 0 60px rgba(99, 102, 241, 0.2);
+            margin-bottom: 2rem;
+            aspect-ratio: 16 / 9;
+        }
+
+        .video-wrapper video {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: contain;
+            /* Enhance video rendering quality */
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+        }
+
+        .video-wrapper.hidden {
+            display: none;
+        }
+
+        .video-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .video-wrapper.loaded .video-loading {
+            display: none;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin-bottom: 2rem;
+            overflow: visible;
+            cursor: pointer;
+            position: relative;
+            transition: height 0.2s ease;
+        }
+
+        .progress-container:hover {
+            height: 12px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--gradient-1);
+            border-radius: 4px;
+            transition: width 0.1s ease;
+            position: relative;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            right: -8px;
+            top: 50%;
+            transform: translateY(-50%) scale(0);
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease;
+        }
+
+        .progress-container:hover .progress-bar::after {
+            transform: translateY(-50%) scale(1);
+        }
+
+        .time-display {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: -1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Narrator box */
+        .narrator-box {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            min-height: 150px;
+        }
+
+        .narrator-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .narrator-avatar {
+            width: 50px;
+            height: 50px;
+            background: var(--gradient-1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .narrator-info h4 {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .narrator-info span {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .narrator-text {
+            font-size: 1.25rem;
+            line-height: 1.8;
+            color: var(--text-primary);
+            min-height: 60px;
+        }
+
+        .narrator-text .cursor {
+            display: inline-block;
+            width: 3px;
+            height: 1.25rem;
+            background: var(--primary-color);
+            margin-left: 2px;
+            animation: blink 0.8s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        /* Demo indicators */
+        .demo-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .demo-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .demo-indicator.active {
+            background: var(--primary-color);
+            transform: scale(1.3);
+        }
+
+        .demo-indicator:nth-child(1).active { background: #6366f1; }
+        .demo-indicator:nth-child(2).active { background: #10b981; }
+        .demo-indicator:nth-child(3).active { background: #f59e0b; }
+        .demo-indicator:nth-child(4).active { background: #ec4899; }
+        .demo-indicator:nth-child(5).active { background: #14b8a6; }
+        .demo-indicator:nth-child(6).active { background: #f97316; }
+
+        /* Demo Controls */
+        .demo-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .demo-control-btn {
+            padding: 0.75rem 1.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: white;
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .demo-control-btn:hover {
+            border-color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        .demo-control-btn.primary {
+            background: var(--gradient-1);
+            border: none;
+        }
+
+        .demo-control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Feature cards */
+        .feature-summary {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 3rem;
+            flex-wrap: nowrap;
+            justify-content: center;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            padding: 1.25rem;
+            border-radius: 16px;
+            text-align: center;
+            flex: 1;
+            min-width: 140px;
+            max-width: 180px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-color);
+        }
+
+        .feature-card .icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card h5 {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-card p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* ==================== SLIDE 3 STYLES ==================== */
+
+        .slide-3-page {
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: var(--text-primary);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .slide-3-page .bg-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(99, 102, 241, 0.6);
+            border-radius: 50%;
+            animation: floatParticle 15s infinite ease-in-out;
+        }
+
+        @keyframes floatParticle {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) translateX(50px); opacity: 0; }
+        }
+
+        .actions-content {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+            padding-bottom: 150px;
+        }
+
+        .actions-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .actions-header h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 30%, #f59e0b 70%, #ec4899 100%);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientText 5s ease infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes gradientText {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .actions-header .subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .action-categories {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .action-category {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-category::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--category-color, var(--gradient-1));
+            border-radius: 20px 20px 0 0;
+        }
+
+        .action-category:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border-color: rgba(99, 102, 241, 0.5);
+        }
+
+        .action-category.mouse { --category-color: linear-gradient(135deg, #6366f1, #8b5cf6); }
+        .action-category.keyboard { --category-color: linear-gradient(135deg, #10b981, #14b8a6); }
+        .action-category.form { --category-color: linear-gradient(135deg, #f59e0b, #f97316); }
+        .action-category.navigation { --category-color: linear-gradient(135deg, #ec4899, #f43f5e); }
+        .action-category.tabs { --category-color: linear-gradient(135deg, #06b6d4, #0891b2); }
+        .action-category.utility { --category-color: linear-gradient(135deg, #8b5cf6, #a855f7); }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .category-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            background: var(--category-color, var(--gradient-1));
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .category-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .action-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .action-chip {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-family: 'Fira Code', 'Monaco', monospace;
+            color: #a5b4fc;
+            transition: all 0.3s ease;
+            cursor: default;
+        }
+
+        .action-chip:hover {
+            background: rgba(99, 102, 241, 0.2);
+            border-color: rgba(99, 102, 241, 0.5);
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .action-chip code {
+            color: #fcd34d;
+        }
+
+        /* Action Stats */
+        .action-stats {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-top: 2rem;
+            padding: 2rem;
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: block;
+            animation: countUp 1s ease-out;
+        }
+
+        @keyframes countUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        /* Animated code example */
+        .code-showcase {
+            margin-top: 2rem;
+            background: #1a1a2e;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .code-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .code-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .code-dot.red { background: #ff5f56; }
+        .code-dot.yellow { background: #ffbd2e; }
+        .code-dot.green { background: #27ca40; }
+
+        .code-title {
+            margin-left: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .code-body {
+            padding: 1.5rem;
+            font-family: 'Fira Code', 'Monaco', monospace;
+            font-size: 0.95rem;
+            line-height: 1.8;
+            color: #e2e8f0;
+        }
+
+        .code-line {
+            display: block;
+            opacity: 0;
+            animation: fadeInCode 0.5s ease forwards;
+        }
+
+        .code-line:nth-child(1) { animation-delay: 0.5s; }
+        .code-line:nth-child(2) { animation-delay: 1s; }
+        .code-line:nth-child(3) { animation-delay: 1.5s; }
+        .code-line:nth-child(4) { animation-delay: 2s; }
+        .code-line:nth-child(5) { animation-delay: 2.5s; }
+
+        @keyframes fadeInCode {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .code-comment { color: #6b7280; }
+        .code-function { color: #a78bfa; }
+        .code-string { color: #34d399; }
+        .code-number { color: #fbbf24; }
+        .code-keyword { color: #f472b6; }
+    </style>
+</head>
+<body>
+    <!-- Slides Container -->
+    <div class="slides-container" id="slidesContainer">
+
+        <!-- SLIDE 1: Overview -->
+        <div class="slide-page slide-1">
+            <div class="slide-content">
+                <div class="header">
+                    <div class="team-profiles">
+                        <div class="profile-item">
+                            <img src="fb_profiles/mark.jpg" alt="Mark" class="profile-img">
+                            <span class="profile-name">Mark</span>
+                        </div>
+                        <div class="profile-item">
+                            <img src="fb_profiles/hamid.jpg" alt="Hamid" class="profile-img">
+                            <span class="profile-name">Hamid</span>
+                        </div>
+                        <div class="profile-item">
+                            <img src="fb_profiles/karen.jpg" alt="Karen" class="profile-img">
+                            <span class="profile-name">Karen</span>
+                        </div>
+                        <div class="profile-item">
+                            <img src="fb_profiles/yasmine.jpg" alt="Yasmine" class="profile-img">
+                            <span class="profile-name">Yasmine</span>
+                        </div>
+                        <div class="profile-item">
+                            <img src="fb_profiles/Ali.jpg" alt="Ali" class="profile-img">
+                            <span class="profile-name">Ali</span>
+                        </div>
+                    </div>
+                    <h1>OpenEnv: RL Training Environments from OpenApps</h1>
+                    <p class="tagline">Training Meta's Next-Gen AI Agents on Production-Ready App Environments</p>
+                </div>
+
+                <div class="problem">
+                    <h2>⚠️ The Problem</h2>
+                    <p>RL training for UI agents requires millions of interactions with dense rewards in safe, realistic environments. Meta's production apps (Messenger, WhatsApp, Instagram) can't provide this.</p>
+                </div>
+
+                <div class="flow-diagram">
+                    <div class="flow-box">
+                        <h3>📱 OpenApps</h3>
+                        <p>Realistic, functional apps built in Python</p>
+                        <p style="margin-top: 10px; font-weight: 600;">• Calendar • Maps • Messaging • Todo • CodeEditor • Shop</p>
+                    </div>
+
+                    <div class="arrow">→</div>
+
+                    <div class="flow-box">
+                        <h3>🎮 OpenEnv</h3>
+                        <p>RL-ready environment wrapper</p>
+                        <p style="margin-top: 10px; font-weight: 600;">Gym Interface • Ground Truth Rewards • Infinite Variations</p>
+                    </div>
+
+                    <div class="arrow">→</div>
+
+                    <div class="flow-box">
+                        <h3>🤖 RL Training</h3>
+                        <p>Scalable agent training & Any Multi-Modal LLM Agent</p>
+                    </div>
+
+                    <div class="arrow">→</div>
+
+                    <div class="flow-box">
+                        <h3>🚀 Meta Apps</h3>
+                        <p>Production deployment</p>
+                        <div class="meta-apps">
+                            <span class="app-badge">Messenger</span>
+                            <span class="app-badge">WhatsApp</span>
+                            <span class="app-badge">Instagram</span>
+                            <span class="app-badge">Marketplace</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pillars">
+                    <div class="pillar">
+                        <h3><span class="pillar-icon">⚡</span> Scalable RL Training</h3>
+                        <ul>
+                            <li>1000s of environment variations from same app</li>
+                            <li>Train robust policies across UI diversity</li>
+                            <li>No human labeling (rewards from Python state)</li>
+                            <li>Lightweight, CPU-only parallelization</li>
+                        </ul>
+                    </div>
+
+                    <div class="pillar">
+                        <h3><span class="pillar-icon">🔄</span> Meta App DNA</h3>
+                        <ul>
+                            <li>Messaging → Messenger/WhatsApp threading</li>
+                            <li>Calendar → Cross-product scheduling & Calendar</li>
+                            <li>Maps → Instagram/Marketplace location</li>
+                            <li>CodeEditor → Dev tools & code review</li>
+                            <li>OnlineShop → Marketplace & commerce</li>
+                        </ul>
+                    </div>
+
+                    <div class="pillar">
+                        <h3><span class="pillar-icon">🛡️</span> Safe Sandbox Pipeline</h3>
+                        <ul>
+                            <li>Train: Safe RL exploration in OpenEnv</li>
+                            <li>Validate: Sim-to-real transfer metrics</li>
+                            <li>Deploy: QA automation, accessibility testing</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="vision">
+                    <h2>🎯 The Vision</h2>
+                    <p>"OpenEnv as the standard RL training infrastructure for all Meta product AI agents"</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 2: Demo -->
+        <div class="slide-page slide-2-page">
+            <div class="bg-animation"></div>
+
+            <div class="demo-presentation">
+                <div class="video-stage">
+                    <div class="stage-header">
+                        <div class="demo-counter" id="demoCounter">Demo 1 of 4</div>
+                        <h2 class="demo-title messenger" id="demoTitle">💬 Messenger App</h2>
+                    </div>
+
+                    <!-- Video containers -->
+                    <div class="video-wrapper" id="video1Wrapper">
+                        <div class="video-loading" id="video1Loading">
+                            <div class="loading-spinner"></div>
+                            <span>Loading video...</span>
+                        </div>
+                        <video id="video1" preload="auto" playsinline>
+                            <source src="01-messages.mov" type="video/quicktime">
+                            <source src="01-messages.mov" type="video/mp4">
+                        </video>
+                    </div>
+                    <div class="video-wrapper hidden" id="video2Wrapper">
+                        <div class="video-loading" id="video2Loading">
+                            <div class="loading-spinner"></div>
+                            <span>Loading video...</span>
+                        </div>
+                        <video id="video2" preload="auto" playsinline>
+                            <source src="02-editor.mov" type="video/quicktime">
+                            <source src="02-editor.mov" type="video/mp4">
+                        </video>
+                    </div>
+                    <div class="video-wrapper hidden" id="video3Wrapper">
+                        <div class="video-loading" id="video3Loading">
+                            <div class="loading-spinner"></div>
+                            <span>Loading video...</span>
+                        </div>
+                        <video id="video3" preload="auto" playsinline>
+                            <source src="03-calendar.mov" type="video/quicktime">
+                            <source src="03-calendar.mov" type="video/mp4">
+                        </video>
+                    </div>
+                    <div class="video-wrapper hidden" id="video4Wrapper">
+                        <div class="video-loading" id="video4Loading">
+                            <div class="loading-spinner"></div>
+                            <span>Loading video...</span>
+                        </div>
+                        <video id="video4" preload="auto" playsinline>
+                            <source src="04-todo.mov" type="video/quicktime">
+                            <source src="04-todo.mov" type="video/mp4">
+                        </video>
+                    </div>
+                    <div class="video-wrapper hidden" id="video5Wrapper">
+                        <div class="video-loading" id="video5Loading">
+                            <div class="loading-spinner"></div>
+                            <span>Loading video...</span>
+                        </div>
+                        <video id="video5" preload="auto" playsinline>
+                            <source src="05-map.mp4" type="video/mp4">
+                        </video>
+                    </div>
+                    <div class="video-wrapper hidden" id="video6Wrapper">
+                        <div class="video-loading" id="video6Loading">
+                            <div class="loading-spinner"></div>
+                            <span>Loading video...</span>
+                        </div>
+                        <video id="video6" preload="auto" playsinline>
+                            <source src="06-shop.mp4" type="video/mp4">
+                        </video>
+                    </div>
+
+                    <!-- Progress bar -->
+                    <div class="progress-container" id="progressContainer">
+                        <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+                    </div>
+                    <div class="time-display">
+                        <span id="currentTime">0:00</span>
+                        <span id="totalTime">0:00</span>
+                    </div>
+
+                    <!-- Narrator box -->
+                    <div class="narrator-box">
+                        <div class="narrator-header">
+                            <div class="narrator-avatar" id="narratorAvatar">🎬</div>
+                            <div class="narrator-info">
+                                <h4>Demo Description</h4>
+                                <span id="narratorStatus">Ready to play...</span>
+                            </div>
+                        </div>
+                        <div class="narrator-text" id="narratorText">
+                            Use the controls below to navigate through the demo videos.
+                            <span class="cursor"></span>
+                        </div>
+                    </div>
+
+                    <!-- Demo indicators -->
+                    <div class="demo-indicators">
+                        <div class="demo-indicator active" data-demo="0"></div>
+                        <div class="demo-indicator" data-demo="1"></div>
+                        <div class="demo-indicator" data-demo="2"></div>
+                        <div class="demo-indicator" data-demo="3"></div>
+                        <div class="demo-indicator" data-demo="4"></div>
+                        <div class="demo-indicator" data-demo="5"></div>
+                    </div>
+
+                    <!-- Demo Controls -->
+                    <div class="demo-controls">
+                        <button class="demo-control-btn" id="prevDemoBtn" onclick="previousDemoVideo()" disabled>
+                            ⏮️ Previous
+                        </button>
+                        <button class="demo-control-btn primary" id="playPauseBtn" onclick="togglePlayPause()">
+                            ▶️ Play
+                        </button>
+                        <button class="demo-control-btn" id="nextDemoBtn" onclick="nextDemoVideo()">
+                            Next ⏭️
+                        </button>
+                    </div>
+
+                    <!-- Feature summary -->
+                    <div class="feature-summary">
+                        <div class="feature-card">
+                            <div class="icon">💬</div>
+                            <h5>Messenger</h5>
+                            <p>Real-time chat interactions</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="icon">💻</div>
+                            <h5>Code Editor</h5>
+                            <p>Syntax-highlighted coding</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="icon">📅</div>
+                            <h5>Calendar</h5>
+                            <p>Event management</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="icon">✅</div>
+                            <h5>Todo Manager</h5>
+                            <p>Task organization</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="icon">🗺️</div>
+                            <h5>Map</h5>
+                            <p>Location & navigation</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="icon">🛒</div>
+                            <h5>Shop</h5>
+                            <p>E-commerce & marketplace</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 3: Actions -->
+        <div class="slide-page slide-3-page">
+            <div class="bg-particles" id="bgParticles"></div>
+
+            <div class="actions-content">
+                <div class="actions-header">
+                    <h1>🎮 OpenApps Action Space</h1>
+                    <p class="subtitle">A comprehensive set of 30+ actions enabling AI agents to interact with web applications just like humans do</p>
+                </div>
+
+                <div class="action-categories">
+                    <!-- Mouse Actions -->
+                    <div class="action-category mouse">
+                        <div class="category-header">
+                            <div class="category-icon">🖱️</div>
+                            <h3 class="category-title">Mouse Actions</h3>
+                        </div>
+                        <div class="action-list">
+                            <span class="action-chip">click</span>
+                            <span class="action-chip">dblclick</span>
+                            <span class="action-chip">hover</span>
+                            <span class="action-chip">mouse_click</span>
+                            <span class="action-chip">mouse_dblclick</span>
+                            <span class="action-chip">mouse_move</span>
+                            <span class="action-chip">mouse_down</span>
+                            <span class="action-chip">mouse_up</span>
+                            <span class="action-chip">mouse_drag_and_drop</span>
+                            <span class="action-chip">mouse_upload_file</span>
+                        </div>
+                    </div>
+
+                    <!-- Keyboard Actions -->
+                    <div class="action-category keyboard">
+                        <div class="category-header">
+                            <div class="category-icon">⌨️</div>
+                            <h3 class="category-title">Keyboard Actions</h3>
+                        </div>
+                        <div class="action-list">
+                            <span class="action-chip">keyboard_type</span>
+                            <span class="action-chip">keyboard_press</span>
+                            <span class="action-chip">keyboard_down</span>
+                            <span class="action-chip">keyboard_up</span>
+                            <span class="action-chip">keyboard_insert_text</span>
+                            <span class="action-chip">press</span>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="action-category form">
+                        <div class="category-header">
+                            <div class="category-icon">📝</div>
+                            <h3 class="category-title">Form Actions</h3>
+                        </div>
+                        <div class="action-list">
+                            <span class="action-chip">fill</span>
+                            <span class="action-chip">clear</span>
+                            <span class="action-chip">select_option</span>
+                            <span class="action-chip">focus</span>
+                            <span class="action-chip">upload_file</span>
+                        </div>
+                    </div>
+
+                    <!-- Navigation Actions -->
+                    <div class="action-category navigation">
+                        <div class="category-header">
+                            <div class="category-icon">🧭</div>
+                            <h3 class="category-title">Navigation</h3>
+                        </div>
+                        <div class="action-list">
+                            <span class="action-chip">goto</span>
+                            <span class="action-chip">go_back</span>
+                            <span class="action-chip">go_forward</span>
+                            <span class="action-chip">scroll</span>
+                            <span class="action-chip">drag_and_drop</span>
+                        </div>
+                    </div>
+
+                    <!-- Tab Management -->
+                    <div class="action-category tabs">
+                        <div class="category-header">
+                            <div class="category-icon">📑</div>
+                            <h3 class="category-title">Tab Management</h3>
+                        </div>
+                        <div class="action-list">
+                            <span class="action-chip">new_tab</span>
+                            <span class="action-chip">tab_close</span>
+                            <span class="action-chip">tab_focus</span>
+                        </div>
+                    </div>
+
+                    <!-- Utility Actions -->
+                    <div class="action-category utility">
+                        <div class="category-header">
+                            <div class="category-icon">🔧</div>
+                            <h3 class="category-title">Utility Actions</h3>
+                        </div>
+                        <div class="action-list">
+                            <span class="action-chip">noop</span>
+                            <span class="action-chip">send_msg_to_user</span>
+                            <span class="action-chip">report_infeasible</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Section -->
+                <div class="action-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">30+</span>
+                        <span class="stat-label">Total Actions</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">6</span>
+                        <span class="stat-label">Action Categories</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">2</span>
+                        <span class="stat-label">Input Modes</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">∞</span>
+                        <span class="stat-label">Possibilities</span>
+                    </div>
+                </div>
+
+                <!-- Code Showcase -->
+                <div class="code-showcase">
+                    <div class="code-header">
+                        <div class="code-dot red"></div>
+                        <div class="code-dot yellow"></div>
+                        <div class="code-dot green"></div>
+                        <span class="code-title">example_actions.py</span>
+                    </div>
+                    <div class="code-body">
+                        <span class="code-line"><span class="code-comment"># Click a button using element ID (AXTree mode)</span></span>
+                        <span class="code-line"><span class="code-function">click</span>(<span class="code-string">"submit-btn"</span>)</span>
+                        <span class="code-line"><span class="code-comment"># Type text in a text field</span></span>
+                        <span class="code-line"><span class="code-function">fill</span>(<span class="code-string">"search-input"</span>, <span class="code-string">"Hello World"</span>)</span>
+                        <span class="code-line"><span class="code-comment"># Click at coordinates (Screenshot mode)</span></span>
+                        <span class="code-line"><span class="code-function">mouse_click</span>(x=<span class="code-number">612</span>, y=<span class="code-number">455</span>)</span>
+                        <span class="code-line"><span class="code-comment"># Navigate and scroll</span></span>
+                        <span class="code-line"><span class="code-function">scroll</span>(dx=<span class="code-number">0</span>, dy=<span class="code-number">300</span>)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide Indicators -->
+    <div class="slide-indicators">
+        <div class="slide-dot active" data-slide="0"></div>
+        <div class="slide-dot" data-slide="1"></div>
+        <div class="slide-dot" data-slide="2"></div>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons">
+        <button class="nav-btn" id="prevSlideBtn" onclick="previousSlide()" disabled>
+            ← Previous
+        </button>
+        <button class="nav-btn" id="nextSlideBtn" onclick="nextSlide()">
+            Next →
+        </button>
+    </div>
+
+    <script>
+        // ==================== SLIDE NAVIGATION ====================
+
+        let currentSlide = 0;
+        const totalSlides = 3;
+        const slidesContainer = document.getElementById('slidesContainer');
+        const prevSlideBtn = document.getElementById('prevSlideBtn');
+        const nextSlideBtn = document.getElementById('nextSlideBtn');
+        const slideDots = document.querySelectorAll('.slide-dot');
+
+        function goToSlide(index) {
+            if (index < 0 || index >= totalSlides) return;
+
+            currentSlide = index;
+
+            // Update container position
+            if (index === 1) {
+                slidesContainer.classList.remove('slide-3');
+                slidesContainer.classList.add('slide-2');
+            } else if (index === 2) {
+                slidesContainer.classList.remove('slide-2');
+                slidesContainer.classList.add('slide-3');
+            } else {
+                slidesContainer.classList.remove('slide-2');
+                slidesContainer.classList.remove('slide-3');
+            }
+
+            // Update navigation buttons
+            prevSlideBtn.disabled = index === 0;
+            nextSlideBtn.disabled = index === totalSlides - 1;
+
+            // Update slide indicators
+            slideDots.forEach((dot, i) => {
+                dot.classList.toggle('active', i === index);
+            });
+
+            // Pause videos when leaving slide 2
+            if (index !== 1) {
+                pauseAllVideos();
+            }
+        }
+
+        function nextSlide() {
+            goToSlide(currentSlide + 1);
+        }
+
+        function previousSlide() {
+            goToSlide(currentSlide - 1);
+        }
+
+        // Slide dot click handlers
+        slideDots.forEach(dot => {
+            dot.addEventListener('click', () => {
+                const slideIndex = parseInt(dot.dataset.slide);
+                goToSlide(slideIndex);
+            });
+        });
+
+        // Keyboard navigation for slides
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'ArrowRight' && !e.shiftKey) {
+                if (currentSlide === 1) {
+                    nextDemoVideo();
+                } else {
+                    nextSlide();
+                }
+            }
+            if (e.code === 'ArrowLeft' && !e.shiftKey) {
+                if (currentSlide === 1) {
+                    previousDemoVideo();
+                } else {
+                    previousSlide();
+                }
+            }
+            if (e.code === 'Space' && currentSlide === 1) {
+                e.preventDefault();
+                togglePlayPause();
+            }
+        });
+
+        // ==================== DEMO VIDEO CONTROLS ====================
+
+        const demos = [
+            {
+                id: 0,
+                title: "💬 Messenger App",
+                titleClass: "messenger",
+                videoId: "video1",
+                wrapperId: "video1Wrapper",
+                description: "Watch as the AI agent navigates the Messenger app, opens conversations, types messages character by character, and handles real-time chat interactions."
+            },
+            {
+                id: 1,
+                title: "💻 Code Editor",
+                titleClass: "editor",
+                videoId: "video2",
+                wrapperId: "video2Wrapper",
+                description: "The AI agent creates a Python file, writes a complete PyTorch neural network with syntax highlighting, and demonstrates code editing capabilities."
+            },
+            {
+                id: 2,
+                title: "📅 Calendar App",
+                titleClass: "calendar",
+                videoId: "video3",
+                wrapperId: "video3Wrapper",
+                description: "See the agent navigate calendar views, browse events, switch between monthly and agenda views, and manage scheduling tasks."
+            },
+            {
+                id: 3,
+                title: "✅ Todo Manager",
+                titleClass: "todo",
+                videoId: "video4",
+                wrapperId: "video4Wrapper",
+                description: "The agent demonstrates how to complete operations on task lists, opening, editing, and managing todo items in a structured interface."
+            },
+            {
+                id: 4,
+                title: "🗺️ Map App",
+                titleClass: "map",
+                videoId: "video5",
+                wrapperId: "video5Wrapper",
+                description: "The AI agent explores the Map application, navigating locations, searching for places, and demonstrating location-based interactions."
+            },
+            {
+                id: 5,
+                title: "🛒 Shop App",
+                titleClass: "shop",
+                videoId: "video6",
+                wrapperId: "video6Wrapper",
+                description: "Watch the agent browse the online shop, view products, add items to cart, and navigate the e-commerce interface."
+            }
+        ];
+
+        let currentDemoIndex = 0;
+        let isPlaying = false;
+        let typingInterval = null;
+
+        const narratorText = document.getElementById('narratorText');
+        const narratorStatus = document.getElementById('narratorStatus');
+        const demoTitle = document.getElementById('demoTitle');
+        const demoCounter = document.getElementById('demoCounter');
+        const progressBar = document.getElementById('progressBar');
+        const prevDemoBtn = document.getElementById('prevDemoBtn');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const demoIndicators = document.querySelectorAll('.demo-indicator');
+
+        function pauseAllVideos() {
+            demos.forEach(demo => {
+                const video = document.getElementById(demo.videoId);
+                video.pause();
+            });
+            isPlaying = false;
+            playPauseBtn.innerHTML = '▶️ Play';
+            narratorStatus.textContent = 'Paused';
+        }
+
+        function playDemoVideo(index) {
+            if (index < 0 || index >= demos.length) return;
+
+            currentDemoIndex = index;
+            const demo = demos[index];
+
+            // Update UI
+            demoTitle.textContent = demo.title;
+            demoTitle.className = 'demo-title ' + demo.titleClass;
+            demoCounter.textContent = `Demo ${index + 1} of ${demos.length}`;
+
+            // Update indicators
+            demoIndicators.forEach((ind, i) => {
+                ind.classList.toggle('active', i === index);
+            });
+
+            // Update buttons
+            prevDemoBtn.disabled = index === 0;
+
+            // Hide all videos, show current
+            demos.forEach(d => {
+                document.getElementById(d.wrapperId).classList.add('hidden');
+                document.getElementById(d.videoId).pause();
+            });
+            document.getElementById(demo.wrapperId).classList.remove('hidden');
+
+            // Type description
+            typeText(demo.description);
+
+            // Reset video and progress
+            const video = document.getElementById(demo.videoId);
+            video.currentTime = 0;
+            progressBar.style.width = '0%';
+
+            // Setup progress tracking
+            video.ontimeupdate = () => {
+                const percent = (video.currentTime / video.duration) * 100;
+                progressBar.style.width = percent + '%';
+            };
+
+            // Handle video end
+            video.onended = () => {
+                if (currentDemoIndex < demos.length - 1) {
+                    setTimeout(() => {
+                        playDemoVideo(currentDemoIndex + 1);
+                        const nextVideo = document.getElementById(demos[currentDemoIndex].videoId);
+                        nextVideo.play();
+                        isPlaying = true;
+                        playPauseBtn.innerHTML = '⏸️ Pause';
+                        narratorStatus.textContent = 'Playing...';
+                    }, 1000);
+                } else {
+                    isPlaying = false;
+                    playPauseBtn.innerHTML = '▶️ Play';
+                    narratorStatus.textContent = 'Demo complete!';
+                }
+            };
+        }
+
+        function typeText(text) {
+            if (typingInterval) clearInterval(typingInterval);
+
+            narratorText.innerHTML = '';
+            let charIndex = 0;
+
+            typingInterval = setInterval(() => {
+                if (charIndex < text.length) {
+                    narratorText.innerHTML = text.substring(0, charIndex + 1) + '<span class="cursor"></span>';
+                    charIndex++;
+                } else {
+                    clearInterval(typingInterval);
+                    narratorText.innerHTML = text + '<span class="cursor"></span>';
+                }
+            }, 20);
+        }
+
+        function togglePlayPause() {
+            const video = document.getElementById(demos[currentDemoIndex].videoId);
+
+            if (isPlaying) {
+                video.pause();
+                isPlaying = false;
+                playPauseBtn.innerHTML = '▶️ Play';
+                narratorStatus.textContent = 'Paused';
+            } else {
+                // Show loading state
+                playPauseBtn.innerHTML = '⏳ Loading...';
+                narratorStatus.textContent = 'Loading...';
+
+                // Ensure video is loaded before playing
+                if (video.readyState < 3) {
+                    video.load();
+                }
+
+                // Use Promise-based play with error handling
+                const playPromise = video.play();
+
+                if (playPromise !== undefined) {
+                    playPromise
+                        .then(() => {
+                            isPlaying = true;
+                            playPauseBtn.innerHTML = '⏸️ Pause';
+                            narratorStatus.textContent = 'Playing...';
+                        })
+                        .catch(error => {
+                            console.log('Play was prevented:', error);
+                            // Retry after a short delay
+                            setTimeout(() => {
+                                video.play()
+                                    .then(() => {
+                                        isPlaying = true;
+                                        playPauseBtn.innerHTML = '⏸️ Pause';
+                                        narratorStatus.textContent = 'Playing...';
+                                    })
+                                    .catch(e => {
+                                        console.log('Retry failed:', e);
+                                        isPlaying = false;
+                                        playPauseBtn.innerHTML = '▶️ Play';
+                                        narratorStatus.textContent = 'Click play to start';
+                                    });
+                            }, 100);
+                        });
+                }
+            }
+        }
+
+        function nextDemoVideo() {
+            if (currentDemoIndex < demos.length - 1) {
+                playDemoVideo(currentDemoIndex + 1);
+                if (isPlaying) {
+                    const video = document.getElementById(demos[currentDemoIndex].videoId);
+                    video.play();
+                }
+            }
+        }
+
+        function previousDemoVideo() {
+            if (currentDemoIndex > 0) {
+                playDemoVideo(currentDemoIndex - 1);
+                if (isPlaying) {
+                    const video = document.getElementById(demos[currentDemoIndex].videoId);
+                    video.play();
+                }
+            }
+        }
+
+        // Demo indicator click handlers
+        demoIndicators.forEach(indicator => {
+            indicator.addEventListener('click', () => {
+                const demoIndex = parseInt(indicator.dataset.demo);
+                playDemoVideo(demoIndex);
+            });
+        });
+
+        // Initialize first demo
+        playDemoVideo(0);
+
+        // ==================== VIDEO PRELOADING ====================
+
+        // Preload all videos and handle loading states
+        demos.forEach(demo => {
+            const video = document.getElementById(demo.videoId);
+            const wrapper = document.getElementById(demo.wrapperId);
+
+            // Mark as loaded when video can play
+            video.addEventListener('canplay', () => {
+                wrapper.classList.add('loaded');
+            });
+
+            // Also check if already loaded
+            if (video.readyState >= 3) {
+                wrapper.classList.add('loaded');
+            }
+        });
+
+        // Force load the first video immediately
+        window.addEventListener('load', () => {
+            const firstVideo = document.getElementById('video1');
+            firstVideo.load();
+        });
+
+        // ==================== PROGRESS BAR SEEK FUNCTIONALITY ====================
+
+        const progressContainer = document.getElementById('progressContainer');
+        const currentTimeDisplay = document.getElementById('currentTime');
+        const totalTimeDisplay = document.getElementById('totalTime');
+        let isDragging = false;
+
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function seekToPosition(e) {
+            const video = document.getElementById(demos[currentDemoIndex].videoId);
+            const rect = progressContainer.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const percent = Math.max(0, Math.min(1, clickX / rect.width));
+            video.currentTime = percent * video.duration;
+            progressBar.style.width = (percent * 100) + '%';
+            currentTimeDisplay.textContent = formatTime(video.currentTime);
+        }
+
+        progressContainer.addEventListener('click', seekToPosition);
+
+        progressContainer.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            seekToPosition(e);
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                seekToPosition(e);
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        // Update time displays when video metadata is loaded
+        demos.forEach(demo => {
+            const video = document.getElementById(demo.videoId);
+            video.addEventListener('loadedmetadata', () => {
+                if (demo.id === currentDemoIndex) {
+                    totalTimeDisplay.textContent = formatTime(video.duration);
+                }
+            });
+            video.addEventListener('timeupdate', () => {
+                if (demo.id === currentDemoIndex && !isDragging) {
+                    currentTimeDisplay.textContent = formatTime(video.currentTime);
+                    totalTimeDisplay.textContent = formatTime(video.duration);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
