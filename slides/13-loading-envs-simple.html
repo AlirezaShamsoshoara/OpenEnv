@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>Loading Environments (Simple)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1920px; height: 1080px; overflow: hidden; font-family: 'Inter', sans-serif; background: #0f172a; color: #f8fafc; }
+  .slide { width: 1920px; height: 1080px; padding: 60px 100px 50px; position: relative; overflow: hidden; }
+  .bg-gradient {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 40% 60%, rgba(22,163,74,0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(59,130,246,0.06) 0%, transparent 50%);
+  }
+  .slide-number { position: absolute; top: 35px; right: 60px; font-size: 14px; color: #475569; font-family: 'JetBrains Mono', monospace; z-index: 10; }
+  .section-label { font-size: 14px; text-transform: uppercase; letter-spacing: 3px; color: #22c55e; margin-bottom: 14px; font-weight: 600; z-index: 2; position: relative; }
+  h2 { font-size: 52px; font-weight: 800; margin-bottom: 8px; z-index: 2; position: relative;
+    background: linear-gradient(135deg, #f8fafc, #86efac);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .subtitle-text { font-size: 18px; color: #94a3b8; margin-bottom: 36px; z-index: 2; position: relative; }
+
+  .methods-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+    z-index: 2; position: relative; margin-bottom: 36px;
+  }
+  .method-card {
+    background: rgba(30,41,59,0.5); border: 1px solid rgba(148,163,184,0.1);
+    border-radius: 16px; padding: 28px 28px 24px; transition: all 0.3s; overflow: hidden;
+  }
+  .method-card:hover { border-color: #22c55e; transform: translateY(-4px); }
+  .method-card .card-header {
+    display: flex; align-items: center; gap: 14px; margin-bottom: 14px;
+  }
+  .card-icon {
+    width: 46px; height: 46px; border-radius: 12px; display: flex;
+    align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0;
+  }
+  .ci-local { background: rgba(59,130,246,0.2); color: #60a5fa; }
+  .ci-docker { background: rgba(96,165,250,0.2); color: #93c5fd; }
+  .ci-hf { background: rgba(245,158,11,0.2); color: #fbbf24; }
+  .ci-uv { background: rgba(16,185,129,0.2); color: #34d399; }
+  .method-card h3 { font-size: 20px; font-weight: 700; color: #e2e8f0; }
+  .method-card .tag {
+    margin-left: auto; font-size: 11px; padding: 4px 12px; border-radius: 6px; font-weight: 600;
+  }
+  .tag-easy { background: rgba(22,163,74,0.2); color: #4ade80; }
+  .tag-auto { background: rgba(59,130,246,0.2); color: #93c5fd; }
+  .method-card p { font-size: 14px; color: #94a3b8; line-height: 1.5; margin-bottom: 14px; }
+  pre.method-code {
+    padding: 14px 18px; border-radius: 10px; font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; line-height: 1.55; margin: 0; white-space: pre;
+    background: rgba(15,23,42,0.8); border: 1px solid rgba(148,163,184,0.08);
+  }
+  .kw { color: #c084fc; } .fn { color: #60a5fa; } .str { color: #34d399; }
+  .cm { color: #546e7a; font-style: italic; } .var { color: #f8fafc; }
+  .op { color: #94a3b8; } .cls { color: #f472b6; } .num { color: #fbbf24; }
+
+  .bottom-bar {
+    z-index: 2; position: relative;
+    display: flex; gap: 16px; align-items: center;
+    padding: 18px 24px; border-radius: 12px;
+    background: rgba(22,163,74,0.06); border: 1px solid rgba(22,163,74,0.15);
+  }
+  .bottom-bar .icon { font-size: 24px; }
+  .bottom-bar .text { font-size: 15px; color: #86efac; }
+  .bottom-bar .text strong { color: #4ade80; }
+  .bottom-bar code {
+    font-family: 'JetBrains Mono', monospace; background: rgba(22,163,74,0.1);
+    padding: 2px 8px; border-radius: 4px; font-size: 13px; color: #4ade80;
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="bg-gradient"></div>
+  <div class="section-label">Connecting</div>
+  <h2>Loading Environments</h2>
+  <p class="subtitle-text">Four ways to connect &mdash; from local development to HuggingFace Hub</p>
+
+  <div class="methods-grid">
+    <!-- 1. Local Server -->
+    <div class="method-card">
+      <div class="card-header">
+        <span class="card-icon ci-local">&#127968;</span>
+        <h3>Local Server (base_url)</h3>
+        <span class="tag tag-easy">Simplest</span>
+      </div>
+      <p>Connect to an already running server. Start it with <code style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#60a5fa;background:rgba(59,130,246,0.1);padding:2px 6px;border-radius:3px;">uvicorn</code> or <code style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#60a5fa;background:rgba(59,130,246,0.1);padding:2px 6px;border-radius:3px;">openenv serve</code>.</p>
+<pre class="method-code"><span class="cm"># Async (recommended)</span>
+<span class="kw">async with</span> <span class="cls">HackEnv</span>(<span class="var">base_url</span>=<span class="str">"http://localhost:8000"</span>) <span class="kw">as</span> <span class="var">env</span>:
+    <span class="var">obs</span> = <span class="kw">await</span> <span class="var">env</span>.<span class="fn">reset</span>()
+    <span class="var">result</span> = <span class="kw">await</span> <span class="var">env</span>.<span class="fn">step</span>(<span class="var">action</span>)
+
+<span class="cm"># Sync wrapper</span>
+<span class="kw">with</span> <span class="cls">HackEnv</span>(<span class="var">base_url</span>=<span class="str">"http://localhost:8000"</span>).<span class="fn">sync</span>() <span class="kw">as</span> <span class="var">env</span>:
+    <span class="var">obs</span> = <span class="var">env</span>.<span class="fn">reset</span>()</pre>
+    </div>
+
+    <!-- 2. Docker Image -->
+    <div class="method-card">
+      <div class="card-header">
+        <span class="card-icon ci-docker">&#128230;</span>
+        <h3>Docker Image (from_docker_image)</h3>
+        <span class="tag tag-auto">Auto-start</span>
+      </div>
+      <p>Starts a container from a local Docker image. Auto-finds an available port, waits for health check, cleans up on close.</p>
+<pre class="method-code"><span class="var">env</span> = <span class="kw">await</span> <span class="cls">HackEnv</span>.<span class="fn">from_docker_image</span>(<span class="str">"hack-env:latest"</span>)
+
+<span class="kw">async with</span> <span class="var">env</span>:
+    <span class="var">obs</span> = <span class="kw">await</span> <span class="var">env</span>.<span class="fn">reset</span>()
+    <span class="var">result</span> = <span class="kw">await</span> <span class="var">env</span>.<span class="fn">step</span>(<span class="var">action</span>)
+<span class="cm"># Container auto-removed on exit</span></pre>
+    </div>
+
+    <!-- 3. HuggingFace Hub -->
+    <div class="method-card">
+      <div class="card-header">
+        <span class="card-icon ci-hf">&#129303;</span>
+        <h3>HuggingFace Hub (from_env)</h3>
+        <span class="tag tag-auto">Auto-pull</span>
+      </div>
+      <p>Pulls a Docker image from the HuggingFace registry, starts the container, and connects. One-liner for any published environment.</p>
+<pre class="method-code"><span class="cm"># Docker mode (default) - pulls from registry.hf.space</span>
+<span class="var">env</span> = <span class="kw">await</span> <span class="cls">HackEnv</span>.<span class="fn">from_env</span>(<span class="str">"openenv/hack-env"</span>)
+
+<span class="cm"># UV mode - clones the repo and runs locally</span>
+<span class="var">env</span> = <span class="kw">await</span> <span class="cls">HackEnv</span>.<span class="fn">from_env</span>(
+    <span class="str">"openenv/hack-env"</span>, <span class="var">use_docker</span>=<span class="kw">False</span>
+)</pre>
+    </div>
+
+    <!-- 4. UV Provider -->
+    <div class="method-card">
+      <div class="card-header">
+        <span class="card-icon ci-uv">&#9889;</span>
+        <h3>UV Provider (Local Dev)</h3>
+        <span class="tag tag-easy">No Docker</span>
+      </div>
+      <p>Runs the environment directly via <code style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#34d399;background:rgba(16,185,129,0.1);padding:2px 6px;border-radius:3px;">uv run</code>. No container overhead. Supports hot reload for development.</p>
+<pre class="method-code"><span class="kw">from</span> <span class="var">openenv.containers.runtime</span> <span class="kw">import</span> <span class="cls">UVProvider</span>
+
+<span class="var">provider</span> = <span class="cls">UVProvider</span>(
+    <span class="var">project_path</span>=<span class="str">"./hack_env"</span>, <span class="var">reload</span>=<span class="kw">True</span>
+)
+<span class="var">url</span> = <span class="var">provider</span>.<span class="fn">start</span>(<span class="var">port</span>=<span class="num">8000</span>)
+<span class="var">env</span> = <span class="cls">HackEnv</span>(<span class="var">base_url</span>=<span class="var">url</span>, <span class="var">provider</span>=<span class="var">provider</span>)</pre>
+    </div>
+  </div>
+
+  <div class="bottom-bar">
+    <span class="icon">&#128161;</span>
+    <span class="text">
+      <strong>All methods use the same client API.</strong>
+      Once connected, <code>reset()</code>, <code>step()</code>, <code>state()</code>, <code>close()</code> work identically regardless of how you loaded the environment.
+    </span>
+  </div>
+</div>
+</body>
+</html>

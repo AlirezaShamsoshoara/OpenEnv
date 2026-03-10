@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>RL Training Loop with OpenEnv</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1920px; height: 1080px; overflow: hidden; font-family: 'Inter', sans-serif; background: #0f172a; color: #f8fafc; }
+  .slide { width: 1920px; height: 1080px; padding: 70px 100px; position: relative; overflow: hidden; }
+  .bg-gradient {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 30% 80%, rgba(16,185,129,0.08) 0%, transparent 50%);
+  }
+  .slide-number { position: absolute; top: 40px; right: 60px; font-size: 14px; color: #475569; font-family: 'JetBrains Mono', monospace; z-index: 10; }
+  .section-label { font-size: 14px; text-transform: uppercase; letter-spacing: 3px; color: #10b981; margin-bottom: 20px; font-weight: 600; z-index: 2; position: relative; }
+  h2 { font-size: 52px; font-weight: 800; margin-bottom: 40px; z-index: 2; position: relative;
+    background: linear-gradient(135deg, #f8fafc, #86efac);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .content-area { display: flex; gap: 50px; z-index: 2; position: relative; }
+  .code-panel {
+    flex: 1; background: rgba(15,23,42,0.9); border: 1px solid rgba(16,185,129,0.2);
+    border-radius: 16px; overflow: hidden;
+  }
+  .code-header {
+    background: rgba(30,41,59,0.8); padding: 14px 24px;
+    display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(148,163,184,0.1);
+  }
+  .code-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-r { background: #ef4444; } .dot-y { background: #f59e0b; } .dot-g { background: #10b981; }
+  .code-title { font-size: 14px; color: #94a3b8; margin-left: 8px; font-family: 'JetBrains Mono', monospace; }
+  pre.code-body {
+    padding: 24px; font-family: 'JetBrains Mono', monospace; font-size: 14.5px;
+    line-height: 1.75; overflow: hidden; margin: 0; white-space: pre;
+    background: transparent;
+  }
+  .kw { color: #c084fc; }
+  .fn { color: #60a5fa; }
+  .str { color: #34d399; }
+  .cm { color: #64748b; font-style: italic; }
+  .var { color: #f8fafc; }
+  .op { color: #94a3b8; }
+  .num { color: #fbbf24; }
+  .cls { color: #f472b6; }
+  .ln { color: #475569; user-select: none; display: inline-block; width: 30px; text-align: right; margin-right: 20px; }
+  .hl { background: rgba(16,185,129,0.08); display: inline-block; width: 100%; margin: 0 -24px; padding: 0 24px; border-left: 3px solid #10b981; box-sizing: content-box; }
+
+  /* Flow steps */
+  .flow-panel { width: 480px; display: flex; flex-direction: column; gap: 14px; }
+  .flow-step {
+    display: flex; align-items: flex-start; gap: 16px; padding: 18px 20px;
+    background: rgba(30,41,59,0.5); border: 1px solid rgba(148,163,184,0.1);
+    border-radius: 12px; transition: all 0.3s; cursor: default;
+  }
+  .flow-step:hover { border-color: #10b981; transform: translateX(6px); }
+  .step-num {
+    width: 36px; height: 36px; border-radius: 10px; display: flex;
+    align-items: center; justify-content: center; font-weight: 800; font-size: 16px;
+    flex-shrink: 0;
+  }
+  .s1 { background: rgba(59,130,246,0.2); color: #60a5fa; }
+  .s2 { background: rgba(245,158,11,0.2); color: #fbbf24; }
+  .s3 { background: rgba(16,185,129,0.2); color: #34d399; }
+  .s4 { background: rgba(139,92,246,0.2); color: #c4b5fd; }
+  .s5 { background: rgba(239,68,68,0.2); color: #fca5a5; }
+  .s6 { background: rgba(236,72,153,0.2); color: #f9a8d4; }
+  .step-text h4 { font-size: 16px; font-weight: 700; margin-bottom: 3px; color: #e2e8f0; }
+  .step-text p { font-size: 13px; color: #94a3b8; line-height: 1.4; }
+  .step-code { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #10b981; margin-top: 4px; }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="bg-gradient"></div>
+  <span class="slide-number">05 / 19</span>
+  <div class="section-label">Core Concept</div>
+  <h2>The RL Training Loop in OpenEnv</h2>
+
+  <div class="content-area">
+    <div class="code-panel">
+      <div class="code-header">
+        <span class="code-dot dot-r"></span><span class="code-dot dot-y"></span><span class="code-dot dot-g"></span>
+        <span class="code-title">train.py</span>
+      </div>
+<pre class="code-body"><span class="ln"> 1</span><span class="kw">import</span> <span class="var">asyncio</span>
+<span class="ln"> 2</span><span class="kw">from</span> <span class="var">hack_env</span> <span class="kw">import</span> <span class="cls">HackEnv</span>
+<span class="ln"> 3</span>
+<span class="ln"> 4</span><span class="kw">async def</span> <span class="fn">train_episode</span><span class="op">(</span><span class="var">env</span><span class="op">,</span> <span class="var">model</span><span class="op">):</span>
+<span class="ln"> 5</span>    <span class="cm"># 1. Start a new episode</span>
+<span class="ln"> 6</span>    <span class="var">obs</span> <span class="op">=</span> <span class="kw">await</span> <span class="var">env</span><span class="op">.</span><span class="fn">reset</span><span class="op">()</span>
+<span class="ln"> 7</span>
+<span class="ln"> 8</span>    <span class="var">trajectory</span> <span class="op">=</span> <span class="op">[]</span>
+<span class="ln"> 9</span>    <span class="kw">while not</span> <span class="var">obs</span><span class="op">.</span><span class="var">done</span><span class="op">:</span>
+<span class="ln">10</span>        <span class="cm"># 2. Agent decides action</span>
+<span class="ln">11</span>        <span class="var">action</span> <span class="op">=</span> <span class="var">model</span><span class="op">.</span><span class="fn">predict</span><span class="op">(</span><span class="var">obs</span><span class="op">)</span>
+<span class="ln">12</span>
+<span class="ln">13</span>        <span class="cm"># 3. Take action in environment</span>
+<span class="ln">14</span>        <span class="var">result</span> <span class="op">=</span> <span class="kw">await</span> <span class="var">env</span><span class="op">.</span><span class="fn">step</span><span class="op">(</span><span class="var">action</span><span class="op">)</span>
+<span class="ln">15</span>
+<span class="ln">16</span>        <span class="cm"># 4. Collect trajectory</span>
+<span class="ln">17</span>        <span class="var">trajectory</span><span class="op">.</span><span class="fn">append</span><span class="op">((</span>
+<span class="ln">18</span>            <span class="var">obs</span><span class="op">,</span> <span class="var">action</span><span class="op">,</span>
+<span class="ln">19</span>            <span class="var">result</span><span class="op">.</span><span class="var">reward</span><span class="op">,</span>
+<span class="ln">20</span>            <span class="var">result</span><span class="op">.</span><span class="var">observation</span>
+<span class="ln">21</span>        <span class="op">))</span>
+<span class="ln">22</span>        <span class="var">obs</span> <span class="op">=</span> <span class="var">result</span><span class="op">.</span><span class="var">observation</span>
+<span class="ln">23</span>
+<span class="ln">24</span>    <span class="cm"># 5. Compute loss &amp; update model</span>
+<span class="ln">25</span>    <span class="var">loss</span> <span class="op">=</span> <span class="fn">grpo_loss</span><span class="op">(</span><span class="var">trajectory</span><span class="op">)</span>
+<span class="ln">26</span>    <span class="var">loss</span><span class="op">.</span><span class="fn">backward</span><span class="op">()</span></pre>
+    </div>
+
+    <div class="flow-panel">
+      <div class="flow-step">
+        <span class="step-num s1">1</span>
+        <div class="step-text">
+          <h4>Reset Environment</h4>
+          <p>Start fresh episode. Environment returns initial observation.</p>
+          <div class="step-code">obs = await env.reset()</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <span class="step-num s2">2</span>
+        <div class="step-text">
+          <h4>Agent Decides</h4>
+          <p>Model generates action from observation (LLM generates text/tool calls).</p>
+          <div class="step-code">action = model.predict(obs)</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <span class="step-num s3">3</span>
+        <div class="step-text">
+          <h4>Step Environment</h4>
+          <p>Environment processes action, returns observation + reward + done.</p>
+          <div class="step-code">result = await env.step(action)</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <span class="step-num s4">4</span>
+        <div class="step-text">
+          <h4>Collect Trajectory</h4>
+          <p>Store (state, action, reward) tuples for policy gradient computation.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <span class="step-num s5">5</span>
+        <div class="step-text">
+          <h4>Compute Loss</h4>
+          <p>Use GRPO, PPO, or REINFORCE to compute policy gradient loss.</p>
+          <div class="step-code">loss = grpo_loss(trajectory)</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <span class="step-num s6">6</span>
+        <div class="step-text">
+          <h4>Update Model</h4>
+          <p>Backpropagate and update weights. Repeat for next episode.</p>
+          <div class="step-code">loss.backward(); optimizer.step()</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

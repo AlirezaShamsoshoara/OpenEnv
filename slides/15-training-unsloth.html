@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>Training with Unsloth</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1920px; height: 1080px; overflow: hidden; font-family: 'Inter', sans-serif; background: #0f172a; color: #f8fafc; }
+  .slide { width: 1920px; height: 1080px; padding: 60px 80px; position: relative; overflow: hidden; }
+  .bg-gradient {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 60% 50%, rgba(16,185,129,0.08) 0%, transparent 50%);
+  }
+  .slide-number { position: absolute; top: 40px; right: 60px; font-size: 14px; color: #475569; font-family: 'JetBrains Mono', monospace; z-index: 10; }
+  .section-label { font-size: 14px; text-transform: uppercase; letter-spacing: 3px; color: #10b981; margin-bottom: 16px; font-weight: 600; z-index: 2; position: relative; }
+  h2 { font-size: 48px; font-weight: 800; margin-bottom: 10px; z-index: 2; position: relative;
+    background: linear-gradient(135deg, #f8fafc, #86efac);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .subtitle-text { font-size: 17px; color: #94a3b8; margin-bottom: 28px; z-index: 2; position: relative; }
+  .content-area { display: flex; gap: 30px; z-index: 2; position: relative; }
+
+  .code-panel {
+    flex: 1; background: rgba(15,23,42,0.95); border: 1px solid rgba(148,163,184,0.12);
+    border-radius: 14px; overflow: hidden;
+  }
+  .code-header {
+    background: rgba(30,41,59,0.9); padding: 10px 20px;
+    display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid rgba(148,163,184,0.1);
+  }
+  .code-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-r { background: #ef4444; } .dot-y { background: #f59e0b; } .dot-g { background: #10b981; }
+  .code-title { font-size: 13px; color: #94a3b8; margin-left: 6px; font-family: 'JetBrains Mono', monospace; }
+  .code-badge { margin-left: auto; font-size: 11px; padding: 3px 10px; border-radius: 4px; font-weight: 600;
+    background: rgba(16,185,129,0.2); color: #34d399; }
+  pre.code-body {
+    padding: 18px 22px; font-family: 'JetBrains Mono', monospace; font-size: 13px;
+    line-height: 1.65; margin: 0; white-space: pre; background: transparent;
+  }
+  .kw { color: #c084fc; } .fn { color: #60a5fa; } .str { color: #34d399; }
+  .cm { color: #546e7a; font-style: italic; } .var { color: #f8fafc; }
+  .op { color: #94a3b8; } .cls { color: #f472b6; } .num { color: #fbbf24; }
+
+  .right-col { width: 520px; display: flex; flex-direction: column; gap: 14px; }
+  .info-card {
+    padding: 18px 20px; border-radius: 12px; transition: all 0.3s;
+    background: rgba(30,41,59,0.5); border: 1px solid rgba(148,163,184,0.1);
+  }
+  .info-card:hover { border-color: #10b981; transform: translateX(4px); }
+  .info-card h4 { font-size: 16px; font-weight: 700; margin-bottom: 6px; color: #e2e8f0; }
+  .info-card p { font-size: 13px; color: #94a3b8; line-height: 1.5; }
+  .info-card code {
+    font-family: 'JetBrains Mono', monospace; background: rgba(16,185,129,0.1);
+    padding: 2px 7px; border-radius: 4px; font-size: 12px; color: #34d399;
+  }
+
+  .perf-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .perf-stat {
+    padding: 14px 16px; border-radius: 10px; text-align: center;
+    background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.15);
+  }
+  .perf-stat .number { font-size: 28px; font-weight: 800; color: #34d399; }
+  .perf-stat .label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+  .compatible-list {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;
+  }
+  .compat-chip {
+    padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600;
+    background: rgba(30,41,59,0.6); border: 1px solid rgba(148,163,184,0.15); color: #cbd5e1;
+    transition: all 0.2s;
+  }
+  .compat-chip:hover { border-color: #10b981; color: #34d399; }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="bg-gradient"></div>
+  <span class="slide-number">16 / 19</span>
+  <div class="section-label">Training Integration</div>
+  <h2>Training with Unsloth</h2>
+  <p class="subtitle-text">Fast RL fine-tuning with Unsloth's optimized training + OpenEnv environments</p>
+
+  <div class="content-area">
+    <div style="flex: 1; display: flex; flex-direction: column; gap: 14px;">
+      <div class="code-panel">
+        <div class="code-header">
+          <span class="code-dot dot-r"></span><span class="code-dot dot-y"></span><span class="code-dot dot-g"></span>
+          <span class="code-title">unsloth_train.py</span>
+          <span class="code-badge">Unsloth + OpenEnv</span>
+        </div>
+<pre class="code-body"><span class="kw">from</span> <span class="var">unsloth</span> <span class="kw">import</span> <span class="cls">FastLanguageModel</span>
+<span class="kw">from</span> <span class="var">trl</span> <span class="kw">import</span> <span class="cls">GRPOTrainer</span>, <span class="cls">GRPOConfig</span>
+<span class="kw">from</span> <span class="var">hack_env</span> <span class="kw">import</span> <span class="cls">HackEnv</span>
+
+<span class="cm"># 1. Load model with Unsloth (2x faster)</span>
+<span class="var">model</span>, <span class="var">tokenizer</span> = <span class="cls">FastLanguageModel</span>.from_pretrained(
+    <span class="var">model_name</span>=<span class="str">"unsloth/Qwen2.5-7B-Instruct"</span>,
+    <span class="var">max_seq_length</span>=<span class="num">2048</span>,
+    <span class="var">load_in_4bit</span>=<span class="kw">True</span>,      <span class="cm"># 4-bit quantization</span>
+)
+
+<span class="cm"># 2. Apply LoRA adapters</span>
+<span class="var">model</span> = <span class="cls">FastLanguageModel</span>.get_peft_model(
+    <span class="var">model</span>,
+    <span class="var">r</span>=<span class="num">16</span>,
+    <span class="var">lora_alpha</span>=<span class="num">16</span>,
+    <span class="var">target_modules</span>=[<span class="str">"q_proj"</span>, <span class="str">"k_proj"</span>,
+                     <span class="str">"v_proj"</span>, <span class="str">"o_proj"</span>],
+)
+
+<span class="cm"># 3. OpenEnv reward function</span>
+<span class="kw">def</span> <span class="fn">env_reward</span>(<span class="var">completions</span>, **<span class="var">kw</span>):
+    <span class="var">rewards</span> = []
+    <span class="kw">for</span> <span class="var">c</span> <span class="kw">in</span> <span class="var">completions</span>:
+        <span class="kw">with</span> <span class="cls">HackEnv</span>(<span class="str">"http://localhost:8000"</span>
+                    ).sync() <span class="kw">as</span> <span class="var">env</span>:
+            <span class="var">env</span>.<span class="fn">reset</span>()
+            <span class="var">r</span> = <span class="var">env</span>.<span class="fn">step</span>(<span class="var">c</span>)
+            <span class="var">rewards</span>.<span class="fn">append</span>(<span class="var">r</span>.<span class="var">reward</span>)
+    <span class="kw">return</span> <span class="var">rewards</span>
+
+<span class="cm"># 4. Train with GRPO</span>
+<span class="var">trainer</span> = <span class="cls">GRPOTrainer</span>(
+    <span class="var">model</span>=<span class="var">model</span>,
+    <span class="var">reward_funcs</span>=<span class="var">env_reward</span>,
+    <span class="var">args</span>=<span class="cls">GRPOConfig</span>(
+        <span class="var">learning_rate</span>=<span class="num">5e-6</span>,
+        <span class="var">num_generations</span>=<span class="num">4</span>,
+    ),
+    <span class="var">train_dataset</span>=<span class="var">dataset</span>,
+)
+<span class="var">trainer</span>.<span class="fn">train</span>()</pre>
+      </div>
+    </div>
+
+    <div class="right-col">
+      <div class="perf-grid">
+        <div class="perf-stat">
+          <div class="number">2x</div>
+          <div class="label">Faster Training</div>
+        </div>
+        <div class="perf-stat">
+          <div class="number">70%</div>
+          <div class="label">Less Memory</div>
+        </div>
+        <div class="perf-stat">
+          <div class="number">4-bit</div>
+          <div class="label">Quantization</div>
+        </div>
+        <div class="perf-stat">
+          <div class="number">LoRA</div>
+          <div class="label">Efficient Tuning</div>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <h4>Why Unsloth?</h4>
+        <p>Unsloth provides <strong>2x faster</strong> training and <strong>70% less memory</strong> through custom CUDA kernels. Works as a drop-in replacement &mdash; same TRL API, just faster.</p>
+      </div>
+
+      <div class="info-card">
+        <h4>The Pattern</h4>
+        <p>1. Load model via <code>FastLanguageModel</code> (with 4-bit quantization)<br>
+        2. Apply LoRA adapters for parameter-efficient training<br>
+        3. Use OpenEnv as the reward function<br>
+        4. Train with standard <code>GRPOTrainer</code></p>
+      </div>
+
+      <div class="info-card">
+        <h4>Google Colab Ready</h4>
+        <p>Run on a free T4 GPU. Unsloth + OpenEnv Colab notebook available for the 2048 game environment with 20B parameter models.</p>
+      </div>
+
+      <div class="info-card" style="border-color: rgba(16,185,129,0.2);">
+        <h4 style="color: #34d399;">Also Compatible With</h4>
+        <div class="compatible-list">
+          <span class="compat-chip">TRL</span>
+          <span class="compat-chip">torchforge</span>
+          <span class="compat-chip">SkyRL</span>
+          <span class="compat-chip">ART</span>
+          <span class="compat-chip">Oumi</span>
+          <span class="compat-chip">veRL</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

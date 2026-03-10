@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>Available Environments</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1920px; height: 1080px; overflow: hidden; font-family: 'Inter', sans-serif; background: #0f172a; color: #f8fafc; }
+  .slide { width: 1920px; height: 1080px; padding: 60px 80px; position: relative; overflow: hidden; }
+  .bg-gradient {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 50% 50%, rgba(139,92,246,0.06) 0%, transparent 50%);
+  }
+  .slide-number { position: absolute; top: 40px; right: 60px; font-size: 14px; color: #475569; font-family: 'JetBrains Mono', monospace; z-index: 10; }
+  .section-label { font-size: 14px; text-transform: uppercase; letter-spacing: 3px; color: #a78bfa; margin-bottom: 16px; font-weight: 600; z-index: 2; position: relative; }
+  h2 { font-size: 48px; font-weight: 800; margin-bottom: 10px; z-index: 2; position: relative;
+    background: linear-gradient(135deg, #f8fafc, #c4b5fd);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .subtitle-text { font-size: 17px; color: #94a3b8; margin-bottom: 28px; z-index: 2; position: relative; }
+
+  .env-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+    z-index: 2; position: relative; margin-bottom: 28px;
+  }
+  .env-card {
+    background: rgba(30,41,59,0.5); border: 1px solid rgba(148,163,184,0.1);
+    border-radius: 14px; padding: 22px 20px; transition: all 0.3s; cursor: default;
+    display: flex; flex-direction: column;
+  }
+  .env-card:hover { border-color: #a78bfa; transform: translateY(-4px); }
+  .env-card .icon { font-size: 32px; margin-bottom: 12px; }
+  .env-card h3 { font-size: 17px; font-weight: 700; color: #e2e8f0; margin-bottom: 6px; }
+  .env-card p { font-size: 13px; color: #94a3b8; line-height: 1.4; flex: 1; }
+  .env-card .tag {
+    margin-top: 10px; font-size: 11px; font-family: 'JetBrains Mono', monospace;
+    padding: 4px 10px; border-radius: 4px; display: inline-block;
+  }
+  .tag-game { background: rgba(59,130,246,0.15); color: #60a5fa; }
+  .tag-code { background: rgba(16,185,129,0.15); color: #34d399; }
+  .tag-web { background: rgba(245,158,11,0.15); color: #fbbf24; }
+  .tag-safety { background: rgba(239,68,68,0.15); color: #fca5a5; }
+  .tag-sim { background: rgba(139,92,246,0.15); color: #c4b5fd; }
+  .tag-reason { background: rgba(236,72,153,0.15); color: #f9a8d4; }
+
+  .bottom-bar {
+    z-index: 2; position: relative; display: flex; gap: 20px; align-items: center;
+    padding: 20px 28px; background: rgba(139,92,246,0.06); border: 1px solid rgba(139,92,246,0.15);
+    border-radius: 14px;
+  }
+  .bottom-bar .stat {
+    text-align: center; padding: 0 20px; border-right: 1px solid rgba(148,163,184,0.1);
+  }
+  .bottom-bar .stat:last-child { border-right: none; }
+  .bottom-bar .stat .num { font-size: 32px; font-weight: 800; color: #a78bfa; }
+  .bottom-bar .stat .lbl { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+  .bottom-bar .text { flex: 1; font-size: 15px; color: #c4b5fd; padding-left: 20px; }
+  .bottom-bar .text strong { color: #a78bfa; }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="bg-gradient"></div>
+  <span class="slide-number">17 / 19</span>
+  <div class="section-label">Ecosystem</div>
+  <h2>Available Environments</h2>
+  <p class="subtitle-text">Growing library of ready-to-use environments &mdash; same API across all of them</p>
+
+  <div class="env-grid">
+    <div class="env-card">
+      <span class="icon">&#127922;</span>
+      <h3>OpenSpiel</h3>
+      <p>70+ game theory games: chess, poker, blackjack, tic-tac-toe, Go</p>
+      <span class="tag tag-game">game-theory</span>
+    </div>
+    <div class="env-card">
+      <span class="icon">&#128187;</span>
+      <h3>Coding Env</h3>
+      <p>Python code execution with smolagents. Write and run code safely.</p>
+      <span class="tag tag-code">code-execution</span>
+    </div>
+    <div class="env-card">
+      <span class="icon">&#127760;</span>
+      <h3>BrowserGym</h3>
+      <p>Browser automation. Navigate, click, fill forms, scrape pages.</p>
+      <span class="tag tag-web">web-browsing</span>
+    </div>
+    <div class="env-card">
+      <span class="icon">&#128640;</span>
+      <h3>Atari</h3>
+      <p>Classic Atari games via Gymnasium. Breakout, Pong, Space Invaders.</p>
+      <span class="tag tag-game">arcade</span>
+    </div>
+    <div class="env-card">
+      <span class="icon">&#128270;</span>
+      <h3>WebSearch</h3>
+      <p>Web search environment. Query, browse results, extract information.</p>
+      <span class="tag tag-web">search</span>
+    </div>
+    <div class="env-card">
+      <span class="icon">&#128200;</span>
+      <h3>FinRL</h3>
+      <p>Financial RL. Stock trading, portfolio management, market simulation.</p>
+      <span class="tag tag-sim">finance</span>
+    </div>
+    <div class="env-card">
+      <span class="icon">&#128663;</span>
+      <h3>CARLA</h3>
+      <p>Autonomous driving simulation with ethical AI benchmarks.</p>
+      <span class="tag tag-safety">autonomous-driving</span>
+    </div>
+    <div class="env-card">
+      <span class="icon">&#128736;</span>
+      <h3>Git Env</h3>
+      <p>Git operations environment. Commits, branches, merges, conflict resolution.</p>
+      <span class="tag tag-code">devtools</span>
+    </div>
+    <div class="env-card">
+      <span class="icon">&#128678;</span>
+      <h3>SUMO RL</h3>
+      <p>Traffic signal control simulation. Urban traffic optimization.</p>
+      <span class="tag tag-sim">traffic</span>
+    </div>
+    <div class="env-card">
+      <span class="icon">&#129504;</span>
+      <h3>Reasoning Gym</h3>
+      <p>Logic puzzles, math problems, reasoning challenges.</p>
+      <span class="tag tag-reason">reasoning</span>
+    </div>
+    <div class="env-card">
+      <span class="icon">&#128172;</span>
+      <h3>Chat Env</h3>
+      <p>Conversational environment for dialogue training and evaluation.</p>
+      <span class="tag tag-web">conversation</span>
+    </div>
+    <div class="env-card">
+      <span class="icon">&#128013;</span>
+      <h3>Snake / Connect4</h3>
+      <p>Classic games for quick prototyping and testing RL pipelines.</p>
+      <span class="tag tag-game">classic-games</span>
+    </div>
+  </div>
+
+  <div class="bottom-bar">
+    <div class="stat"><div class="num">16+</div><div class="lbl">Environments</div></div>
+    <div class="stat"><div class="num">1</div><div class="lbl">Unified API</div></div>
+    <div class="stat"><div class="num">6+</div><div class="lbl">RL Frameworks</div></div>
+    <div class="text">
+      <strong>Same 4 methods everywhere:</strong> reset() &middot; step() &middot; state() &middot; close()
+      <br>Build once, train with any framework, deploy anywhere.
+    </div>
+  </div>
+</div>
+</body>
+</html>

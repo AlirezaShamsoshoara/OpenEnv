@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>Community & Partners</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1920px; height: 1080px; overflow: hidden; font-family: 'Inter', sans-serif; background: #0f172a; color: #f8fafc; }
+  .slide { width: 1920px; height: 1080px; padding: 70px 100px; position: relative; overflow: hidden; }
+  .bg-gradient {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 30% 30%, rgba(59,130,246,0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 70%, rgba(16,185,129,0.06) 0%, transparent 50%);
+  }
+  .slide-number { position: absolute; top: 40px; right: 60px; font-size: 14px; color: #475569; font-family: 'JetBrains Mono', monospace; z-index: 10; }
+  .section-label { font-size: 14px; text-transform: uppercase; letter-spacing: 3px; color: #3b82f6; margin-bottom: 16px; font-weight: 600; z-index: 2; position: relative; }
+  h2 { font-size: 52px; font-weight: 800; margin-bottom: 10px; z-index: 2; position: relative;
+    background: linear-gradient(135deg, #f8fafc, #93c5fd);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .subtitle-text { font-size: 18px; color: #94a3b8; margin-bottom: 40px; z-index: 2; position: relative; }
+
+  .partners-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;
+    z-index: 2; position: relative; margin-bottom: 40px;
+  }
+  .partner-card {
+    background: rgba(30,41,59,0.5); border: 1px solid rgba(148,163,184,0.1);
+    border-radius: 14px; padding: 28px 24px; text-align: center;
+    transition: all 0.3s; cursor: default;
+  }
+  .partner-card:hover { border-color: #3b82f6; transform: translateY(-6px); }
+  .partner-card .name { font-size: 20px; font-weight: 700; color: #e2e8f0; margin-bottom: 6px; }
+  .partner-card .role { font-size: 13px; color: #94a3b8; line-height: 1.4; }
+  .partner-card .icon { font-size: 36px; margin-bottom: 14px; display: block; }
+
+  .principles-row {
+    display: flex; gap: 20px; z-index: 2; position: relative;
+  }
+  .principle {
+    flex: 1; padding: 24px; border-radius: 14px; transition: all 0.3s;
+  }
+  .principle:hover { transform: translateY(-4px); }
+  .p-blue { background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.2); }
+  .p-green { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); }
+  .p-amber { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); }
+  .p-purple { background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.2); }
+  .principle h4 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+  .p-blue h4 { color: #60a5fa; } .p-green h4 { color: #34d399; }
+  .p-amber h4 { color: #fbbf24; } .p-purple h4 { color: #a78bfa; }
+  .principle p { font-size: 14px; color: #94a3b8; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="bg-gradient"></div>
+  <span class="slide-number">18 / 19</span>
+  <div class="section-label">Community</div>
+  <h2>Partners &amp; Design Principles</h2>
+  <p class="subtitle-text">Built with and for the open-source RL community</p>
+
+  <div class="partners-grid">
+    <div class="partner-card">
+      <span class="icon">&#129303;</span>
+      <div class="name">HuggingFace</div>
+      <div class="role">TRL integration, Spaces hosting, model hub</div>
+    </div>
+    <div class="partner-card">
+      <span class="icon">&#9889;</span>
+      <div class="name">Unsloth AI</div>
+      <div class="role">2x faster training, memory-efficient LoRA</div>
+    </div>
+    <div class="partner-card">
+      <span class="icon">&#128293;</span>
+      <div class="name">Meta PyTorch</div>
+      <div class="role">Core framework, torchforge integration</div>
+    </div>
+    <div class="partner-card">
+      <span class="icon">&#127775;</span>
+      <div class="name">vLLM</div>
+      <div class="role">High-throughput inference for RL rollouts</div>
+    </div>
+    <div class="partner-card">
+      <span class="icon">&#9992;</span>
+      <div class="name">SkyRL</div>
+      <div class="role">Scalable RL training framework</div>
+    </div>
+    <div class="partner-card">
+      <span class="icon">&#128171;</span>
+      <div class="name">Scaler AI Labs</div>
+      <div class="role">Environment contributions and testing</div>
+    </div>
+    <div class="partner-card">
+      <span class="icon">&#128737;</span>
+      <div class="name">Patronus AI</div>
+      <div class="role">Safety evaluation and benchmarking</div>
+    </div>
+    <div class="partner-card">
+      <span class="icon">&#9889;</span>
+      <div class="name">Lightning AI</div>
+      <div class="role">Training infrastructure and scaling</div>
+    </div>
+  </div>
+
+  <div class="principles-row">
+    <div class="principle p-blue">
+      <h4>Minimize Lifecycle Deltas</h4>
+      <p>Training, evals, and production use identical interfaces. No special adapters.</p>
+    </div>
+    <div class="principle p-green">
+      <h4>Human-Agent Parity</h4>
+      <p>Tools that work for humans should work for agents &mdash; and vice versa.</p>
+    </div>
+    <div class="principle p-amber">
+      <h4>Be Hands-On</h4>
+      <p>Provide ready-to-use implementations, not just specifications.</p>
+    </div>
+    <div class="principle p-purple">
+      <h4>Design for LLMs</h4>
+      <p>Optimize for context efficiency, in-distribution behavior, and token costs.</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

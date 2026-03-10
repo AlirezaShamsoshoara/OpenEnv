@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>Rubric System - Rewards</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1920px; height: 1080px; overflow: hidden; font-family: 'Inter', sans-serif; background: #0f172a; color: #f8fafc; }
+  .slide { width: 1920px; height: 1080px; padding: 60px 80px; position: relative; overflow: hidden; }
+  .bg-gradient {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 40% 40%, rgba(236,72,153,0.08) 0%, transparent 50%);
+  }
+  .slide-number { position: absolute; top: 40px; right: 60px; font-size: 14px; color: #475569; font-family: 'JetBrains Mono', monospace; z-index: 10; }
+  .section-label { font-size: 14px; text-transform: uppercase; letter-spacing: 3px; color: #ec4899; margin-bottom: 16px; font-weight: 600; z-index: 2; position: relative; }
+  h2 { font-size: 48px; font-weight: 800; margin-bottom: 10px; z-index: 2; position: relative;
+    background: linear-gradient(135deg, #f8fafc, #f9a8d4);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .subtitle-text { font-size: 17px; color: #94a3b8; margin-bottom: 28px; z-index: 2; position: relative; }
+  .content-area { display: flex; gap: 30px; z-index: 2; position: relative; }
+
+  .code-panel {
+    flex: 1; background: rgba(15,23,42,0.95); border: 1px solid rgba(148,163,184,0.12);
+    border-radius: 14px; overflow: hidden;
+  }
+  .code-header {
+    background: rgba(30,41,59,0.9); padding: 10px 20px;
+    display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid rgba(148,163,184,0.1);
+  }
+  .code-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-r { background: #ef4444; } .dot-y { background: #f59e0b; } .dot-g { background: #10b981; }
+  .code-title { font-size: 13px; color: #94a3b8; margin-left: 6px; font-family: 'JetBrains Mono', monospace; }
+  pre.code-body {
+    padding: 16px 20px; font-family: 'JetBrains Mono', monospace; font-size: 13px;
+    line-height: 1.65; margin: 0; white-space: pre; background: transparent;
+  }
+  .kw { color: #c084fc; } .fn { color: #60a5fa; } .str { color: #34d399; }
+  .cm { color: #546e7a; font-style: italic; } .var { color: #f8fafc; }
+  .op { color: #94a3b8; } .cls { color: #f472b6; } .num { color: #fbbf24; }
+  .dec { color: #fb923c; } .type { color: #22d3ee; }
+
+  .right-col { width: 560px; display: flex; flex-direction: column; gap: 14px; }
+  .rubric-card {
+    padding: 18px 20px; border-radius: 12px; transition: all 0.3s;
+    background: rgba(30,41,59,0.5); border: 1px solid rgba(148,163,184,0.1);
+  }
+  .rubric-card:hover { border-color: #ec4899; transform: translateX(6px); }
+  .rubric-card h4 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .rubric-card p { font-size: 13px; color: #94a3b8; line-height: 1.5; }
+  .rubric-card code {
+    font-family: 'JetBrains Mono', monospace; background: rgba(236,72,153,0.1);
+    padding: 2px 7px; border-radius: 4px; font-size: 12px; color: #f9a8d4;
+  }
+  .c-pink { color: #f472b6; } .c-blue { color: #60a5fa; }
+  .c-green { color: #34d399; } .c-amber { color: #fbbf24; }
+  .c-purple { color: #a78bfa; }
+
+  .analogy-bar {
+    padding: 14px 20px; border-radius: 10px;
+    background: rgba(236,72,153,0.06); border: 1px solid rgba(236,72,153,0.15);
+    font-size: 14px; color: #f9a8d4; display: flex; align-items: center; gap: 12px;
+  }
+  .analogy-bar strong { color: #f472b6; }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="bg-gradient"></div>
+  <span class="slide-number">14 / 19</span>
+  <div class="section-label">Reward Design</div>
+  <h2>The Rubric System</h2>
+  <p class="subtitle-text">PyTorch nn.Module-inspired composable reward functions &mdash; rewards stay inside the environment</p>
+
+  <div class="content-area">
+    <div style="flex: 1; display: flex; flex-direction: column; gap: 14px;">
+      <div class="code-panel">
+        <div class="code-header">
+          <span class="code-dot dot-r"></span><span class="code-dot dot-y"></span><span class="code-dot dot-g"></span>
+          <span class="code-title">Custom Rubric</span>
+        </div>
+<pre class="code-body"><span class="kw">from</span> <span class="var">openenv.rubrics</span> <span class="kw">import</span> (
+    <span class="cls">Rubric</span>, <span class="cls">Sequential</span>, <span class="cls">WeightedSum</span>, <span class="cls">Gate</span>
+)
+
+<span class="kw">class</span> <span class="cls">FlagRubric</span>(<span class="cls">Rubric</span>):
+    <span class="str">"""Reward for finding CTF flags."""</span>
+    <span class="kw">def</span> <span class="fn">forward</span>(<span class="var">self</span>, <span class="var">action</span>, <span class="var">obs</span>) -> <span class="type">float</span>:
+        <span class="kw">return</span> <span class="fn">len</span>(<span class="var">obs</span>.<span class="var">flags_found</span>) / <span class="num">5.0</span>
+
+<span class="kw">class</span> <span class="cls">EfficiencyRubric</span>(<span class="cls">Rubric</span>):
+    <span class="str">"""Penalize too many steps."""</span>
+    <span class="kw">def</span> <span class="fn">forward</span>(<span class="var">self</span>, <span class="var">action</span>, <span class="var">obs</span>) -> <span class="type">float</span>:
+        <span class="kw">return</span> <span class="fn">max</span>(<span class="num">0</span>, <span class="num">1.0</span> - <span class="var">self</span>.<span class="var">step_count</span> * <span class="num">0.05</span>)</pre>
+      </div>
+
+      <div class="code-panel">
+        <div class="code-header">
+          <span class="code-dot dot-r"></span><span class="code-dot dot-y"></span><span class="code-dot dot-g"></span>
+          <span class="code-title">Composing Rubrics</span>
+        </div>
+<pre class="code-body"><span class="cm"># Like nn.Sequential / nn.ModuleList</span>
+<span class="var">rubric</span> = <span class="cls">WeightedSum</span>(
+    rubrics=[
+        <span class="cls">FlagRubric</span>(),          <span class="cm"># 70% weight</span>
+        <span class="cls">EfficiencyRubric</span>(),    <span class="cm"># 30% weight</span>
+    ],
+    weights=[<span class="num">0.7</span>, <span class="num">0.3</span>]
+)
+
+<span class="cm"># Gate: zero reward if score below threshold</span>
+<span class="var">gated</span> = <span class="cls">Gate</span>(<span class="var">rubric</span>, <span class="var">threshold</span>=<span class="num">0.1</span>)
+
+<span class="cm"># Sequential: fail-fast on zero</span>
+<span class="var">strict</span> = <span class="cls">Sequential</span>(
+    <span class="cls">FormatCheckRubric</span>(),   <span class="cm"># Must pass first</span>
+    <span class="cls">CorrectnessRubric</span>(),   <span class="cm"># Then check answer</span>
+)
+
+<span class="cm"># Attach to environment</span>
+<span class="var">env</span> = <span class="cls">HackEnvironment</span>(<span class="var">rubric</span>=<span class="var">gated</span>)</pre>
+      </div>
+    </div>
+
+    <div class="right-col">
+      <div class="analogy-bar">
+        <span style="font-size: 24px;">&#128161;</span>
+        <span><strong>Analogy:</strong> Rubrics are to rewards what <code style="background:rgba(236,72,153,0.1);padding:2px 6px;border-radius:3px;color:#f9a8d4;">nn.Module</code> is to neural networks</span>
+      </div>
+      <div class="rubric-card">
+        <h4><span class="c-pink">&#9679;</span> Rubric (Base)</h4>
+        <p>Implement <code>forward(action, obs) -> float</code>. Supports hooks, children, state_dict, serialization.</p>
+      </div>
+      <div class="rubric-card">
+        <h4><span class="c-blue">&#9679;</span> Sequential</h4>
+        <p>Run rubrics in order. <strong>Fail-fast:</strong> returns 0 immediately if any rubric scores 0.</p>
+      </div>
+      <div class="rubric-card">
+        <h4><span class="c-green">&#9679;</span> WeightedSum</h4>
+        <p>Parallel async eval via <code>asyncio.gather</code>. Weighted combination of multiple rubrics.</p>
+      </div>
+      <div class="rubric-card">
+        <h4><span class="c-amber">&#9679;</span> Gate</h4>
+        <p>Returns 0 if score below threshold. Useful for minimum quality requirements.</p>
+      </div>
+      <div class="rubric-card">
+        <h4><span class="c-purple">&#9679;</span> TrajectoryRubric</h4>
+        <p>Delayed rewards. Accumulates trajectory, scores at episode end. Supports <code>ExponentialDiscounting</code>.</p>
+      </div>
+      <div class="rubric-card" style="background: rgba(236,72,153,0.06); border-color: rgba(236,72,153,0.2);">
+        <h4 style="color: #f472b6;">Also Available</h4>
+        <p><code>RubricList</code> &mdash; dynamic list container<br>
+        <code>RubricDict</code> &mdash; named access for multi-task environments<br>
+        <code>register_forward_hook</code> &mdash; logging, metrics</p>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>Creating a Client Environment</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1920px; height: 1080px; overflow: hidden; font-family: 'Inter', sans-serif; background: #0f172a; color: #f8fafc; }
+  .slide { width: 1920px; height: 1080px; padding: 50px 80px 40px; position: relative; overflow: hidden; }
+  .bg-gradient {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 30% 30%, rgba(59,130,246,0.1) 0%, transparent 50%);
+  }
+  .slide-number { position: absolute; top: 30px; right: 50px; font-size: 14px; color: #475569; font-family: 'JetBrains Mono', monospace; z-index: 10; }
+  .section-label { font-size: 13px; text-transform: uppercase; letter-spacing: 3px; color: #3b82f6; margin-bottom: 10px; font-weight: 600; z-index: 2; position: relative; }
+  h2 { font-size: 44px; font-weight: 800; margin-bottom: 6px; z-index: 2; position: relative;
+    background: linear-gradient(135deg, #f8fafc, #93c5fd);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .subtitle-text { font-size: 16px; color: #94a3b8; margin-bottom: 24px; z-index: 2; position: relative; }
+  .content-area { display: flex; gap: 30px; z-index: 2; position: relative; }
+
+  .code-panel {
+    flex: 1; background: rgba(15,23,42,0.95); border: 1px solid rgba(148,163,184,0.12);
+    border-radius: 12px; overflow: hidden;
+  }
+  .code-header {
+    background: rgba(30,41,59,0.9); padding: 8px 16px;
+    display: flex; align-items: center; gap: 7px;
+    border-bottom: 1px solid rgba(148,163,184,0.1);
+  }
+  .code-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .dot-r { background: #ef4444; } .dot-y { background: #f59e0b; } .dot-g { background: #10b981; }
+  .code-title { font-size: 12px; color: #94a3b8; margin-left: 5px; font-family: 'JetBrains Mono', monospace; }
+  pre.code-body {
+    padding: 14px 18px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px;
+    line-height: 1.6; margin: 0; white-space: pre; background: transparent;
+  }
+  .kw { color: #c084fc; } .fn { color: #60a5fa; } .str { color: #34d399; }
+  .cm { color: #546e7a; font-style: italic; } .var { color: #f8fafc; }
+  .op { color: #94a3b8; } .cls { color: #f472b6; } .dec { color: #fb923c; }
+  .num { color: #fbbf24; } .type { color: #22d3ee; }
+
+  .info-panel { width: 480px; display: flex; flex-direction: column; gap: 12px; }
+  .info-card {
+    padding: 16px 18px; border-radius: 10px; transition: all 0.3s;
+    background: rgba(30,41,59,0.5); border: 1px solid rgba(148,163,184,0.1);
+  }
+  .info-card:hover { border-color: #3b82f6; transform: translateX(4px); }
+  .info-card h4 { font-size: 15px; font-weight: 700; margin-bottom: 5px; color: #e2e8f0; }
+  .info-card p { font-size: 13px; color: #94a3b8; line-height: 1.4; }
+  .info-card code {
+    font-family: 'JetBrains Mono', monospace; background: rgba(59,130,246,0.1);
+    padding: 2px 6px; border-radius: 4px; font-size: 12px; color: #60a5fa;
+  }
+  .methods-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+  .method-chip {
+    padding: 8px 12px; border-radius: 6px; font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; text-align: center; transition: all 0.3s;
+  }
+  .method-chip:hover { transform: scale(1.05); }
+  .m-async { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); color: #93c5fd; }
+  .m-sync { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: #86efac; }
+  .m-docker { background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.2); color: #c4b5fd; }
+  .m-hf { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); color: #fde68a; }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="bg-gradient"></div>
+  <span class="slide-number">09 / 19</span>
+  <div class="section-label">Client Side</div>
+  <h2>Creating a Client Environment</h2>
+  <p class="subtitle-text">Type-safe client that connects to any OpenEnv server via WebSocket</p>
+
+  <div class="content-area">
+    <div class="code-panel">
+      <div class="code-header">
+        <span class="code-dot dot-r"></span><span class="code-dot dot-y"></span><span class="code-dot dot-g"></span>
+        <span class="code-title">client.py</span>
+      </div>
+<pre class="code-body"><span class="kw">from</span> <span class="var">openenv</span> <span class="kw">import</span> <span class="cls">EnvClient</span><span class="op">,</span> <span class="cls">StepResult</span>
+<span class="kw">from</span> <span class="var">.models</span> <span class="kw">import</span> <span class="op">(</span>
+    <span class="cls">HackAction</span><span class="op">,</span> <span class="cls">HackObservation</span><span class="op">,</span> <span class="cls">HackState</span>
+<span class="op">)</span>
+
+<span class="kw">class</span> <span class="cls">HackEnv</span><span class="op">(</span>
+    <span class="cls">EnvClient</span><span class="op">[</span><span class="cls">HackAction</span><span class="op">,</span> <span class="cls">HackObservation</span><span class="op">,</span> <span class="cls">HackState</span><span class="op">]</span>
+<span class="op">):</span>
+    <span class="str">"""Client for the HackEnv CTF environment."""</span>
+
+    <span class="kw">def</span> <span class="fn">_step_payload</span><span class="op">(</span><span class="var">self</span><span class="op">,</span> <span class="var">action</span><span class="op">:</span> <span class="cls">HackAction</span><span class="op">):</span>
+        <span class="cm"># Serialize action to JSON for WebSocket</span>
+        <span class="kw">return</span> <span class="var">action</span><span class="op">.</span><span class="fn">model_dump</span><span class="op">()</span>
+
+    <span class="kw">def</span> <span class="fn">_parse_result</span><span class="op">(</span><span class="var">self</span><span class="op">,</span> <span class="var">payload</span><span class="op">):</span>
+        <span class="cm"># Deserialize server response</span>
+        <span class="var">obs</span> <span class="op">=</span> <span class="cls">HackObservation</span><span class="op">(**</span><span class="var">payload</span><span class="op">)</span>
+        <span class="kw">return</span> <span class="cls">StepResult</span><span class="op">(</span>
+            <span class="var">observation</span><span class="op">=</span><span class="var">obs</span><span class="op">,</span>
+            <span class="var">reward</span><span class="op">=</span><span class="var">obs</span><span class="op">.</span><span class="var">reward</span><span class="op">,</span>
+            <span class="var">done</span><span class="op">=</span><span class="var">obs</span><span class="op">.</span><span class="var">done</span>
+        <span class="op">)</span>
+
+    <span class="kw">def</span> <span class="fn">_parse_state</span><span class="op">(</span><span class="var">self</span><span class="op">,</span> <span class="var">payload</span><span class="op">):</span>
+        <span class="kw">return</span> <span class="cls">HackState</span><span class="op">(**</span><span class="var">payload</span><span class="op">)</span>
+
+<span class="cm"># --- Usage: Async (recommended) ---</span>
+<span class="kw">async with</span> <span class="cls">HackEnv</span><span class="op">(</span>
+    <span class="var">base_url</span><span class="op">=</span><span class="str">"http://localhost:8000"</span>
+<span class="op">) as</span> <span class="var">env</span><span class="op">:</span>
+    <span class="var">obs</span> <span class="op">=</span> <span class="kw">await</span> <span class="var">env</span><span class="op">.</span><span class="fn">reset</span><span class="op">()</span>
+    <span class="var">result</span> <span class="op">=</span> <span class="kw">await</span> <span class="var">env</span><span class="op">.</span><span class="fn">step</span><span class="op">(</span><span class="var">action</span><span class="op">)</span>
+
+<span class="cm"># --- Usage: Sync wrapper ---</span>
+<span class="kw">with</span> <span class="cls">HackEnv</span><span class="op">(</span><span class="var">base_url</span><span class="op">=</span><span class="str">"..."</span><span class="op">).</span><span class="fn">sync</span><span class="op">() as</span> <span class="var">env</span><span class="op">:</span>
+    <span class="var">obs</span> <span class="op">=</span> <span class="var">env</span><span class="op">.</span><span class="fn">reset</span><span class="op">()</span>
+    <span class="var">result</span> <span class="op">=</span> <span class="var">env</span><span class="op">.</span><span class="fn">step</span><span class="op">(</span><span class="var">action</span><span class="op">)</span></pre>
+    </div>
+
+    <div class="info-panel">
+      <div class="info-card">
+        <h4>Generic Type Safety</h4>
+        <p><code>EnvClient[ActT, ObsT, StateT]</code> ensures compile-time type checking. All validated via Pydantic.</p>
+      </div>
+      <div class="info-card">
+        <h4>Three Abstract Methods</h4>
+        <p>Implement <code>_step_payload</code> (serialize), <code>_parse_result</code> (deserialize obs), and <code>_parse_state</code> (deserialize state).</p>
+      </div>
+      <div class="info-card">
+        <h4>Connection Modes</h4>
+        <div class="methods-grid">
+          <div class="method-chip m-async">async with env:</div>
+          <div class="method-chip m-sync">env.sync()</div>
+          <div class="method-chip m-docker">from_docker_image()</div>
+          <div class="method-chip m-hf">from_env("org/env")</div>
+        </div>
+      </div>
+      <div class="info-card">
+        <h4>MCP Tool Client (Alternative)</h4>
+        <p>For quick prototyping, use <code>MCPToolClient</code> directly &mdash; no subclass needed. Discover and call tools dynamically.</p>
+      </div>
+      <div class="info-card" style="background: rgba(59,130,246,0.08); border-color: rgba(59,130,246,0.2);">
+        <h4 style="color: #60a5fa;">Factory Methods</h4>
+        <p>
+          <code>HackEnv.from_docker_image("hack-env:latest")</code><br>
+          <code>HackEnv.from_env("openenv/hack-env")</code><br>
+          Auto-starts containers, waits for health check, connects.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

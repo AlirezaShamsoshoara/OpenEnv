@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>Deploying Environments</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1920px; height: 1080px; overflow: hidden; font-family: 'Inter', sans-serif; background: #0f172a; color: #f8fafc; }
+  .slide { width: 1920px; height: 1080px; padding: 70px 100px; position: relative; overflow: hidden; }
+  .bg-gradient {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 70% 30%, rgba(59,130,246,0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 30% 80%, rgba(16,185,129,0.06) 0%, transparent 50%);
+  }
+  .slide-number { position: absolute; top: 40px; right: 60px; font-size: 14px; color: #475569; font-family: 'JetBrains Mono', monospace; z-index: 10; }
+  .section-label { font-size: 14px; text-transform: uppercase; letter-spacing: 3px; color: #3b82f6; margin-bottom: 20px; font-weight: 600; z-index: 2; position: relative; }
+  h2 { font-size: 52px; font-weight: 800; margin-bottom: 36px; z-index: 2; position: relative;
+    background: linear-gradient(135deg, #f8fafc, #93c5fd);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .deploy-grid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 28px;
+    z-index: 2; position: relative; margin-bottom: 32px;
+  }
+  .deploy-card {
+    background: rgba(30,41,59,0.5); border: 1px solid rgba(148,163,184,0.1);
+    border-radius: 16px; padding: 30px 28px; transition: all 0.3s; position: relative; overflow: hidden;
+  }
+  .deploy-card:hover { border-color: #3b82f6; transform: translateY(-6px); }
+  .deploy-card .card-icon {
+    font-size: 36px; margin-bottom: 16px; display: block;
+  }
+  .deploy-card h3 { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: #e2e8f0; }
+  .deploy-card p { font-size: 14px; color: #94a3b8; line-height: 1.5; margin-bottom: 16px; }
+  .deploy-card .cmd-box {
+    background: rgba(15,23,42,0.8); border: 1px solid rgba(148,163,184,0.1);
+    border-radius: 8px; padding: 12px 16px; font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px; line-height: 1.6;
+  }
+  .cmd-prompt { color: #10b981; }
+  .cmd-text { color: #cbd5e1; }
+  .cmd-flag { color: #60a5fa; }
+  .cmd-str { color: #34d399; }
+  .cmd-comment { color: #546e7a; font-style: italic; }
+
+  /* Bottom: Dockerfile */
+  .dockerfile-section {
+    z-index: 2; position: relative;
+  }
+  .dockerfile-panel {
+    background: rgba(15,23,42,0.95); border: 1px solid rgba(59,130,246,0.15);
+    border-radius: 14px; overflow: hidden;
+  }
+  .df-header {
+    background: rgba(30,41,59,0.9); padding: 12px 24px;
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid rgba(148,163,184,0.08);
+  }
+  .code-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-r { background: #ef4444; } .dot-y { background: #f59e0b; } .dot-g { background: #10b981; }
+  .df-title { font-size: 13px; color: #94a3b8; font-family: 'JetBrains Mono', monospace; }
+  .df-body {
+    padding: 16px 24px; font-family: 'JetBrains Mono', monospace; font-size: 13px;
+    line-height: 1.6; display: flex; gap: 40px;
+  }
+  .df-col { flex: 1; }
+  .dk { color: #60a5fa; } /* dockerfile keyword */
+  .dv { color: #34d399; } /* value */
+  .dc { color: #546e7a; font-style: italic; } /* comment */
+  .da { color: #fbbf24; } /* argument */
+
+  .badge-row {
+    display: flex; gap: 12px; margin-top: 12px;
+  }
+  .deploy-badge {
+    padding: 6px 14px; border-radius: 6px; font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .b-docker { background: rgba(59,130,246,0.15); color: #60a5fa; }
+  .b-hf { background: rgba(245,158,11,0.15); color: #fbbf24; }
+  .b-cloud { background: rgba(139,92,246,0.15); color: #c4b5fd; }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="bg-gradient"></div>
+  <span class="slide-number">11 / 19</span>
+  <div class="section-label">Deployment</div>
+  <h2>Deploying Environments</h2>
+
+  <div class="deploy-grid">
+    <div class="deploy-card">
+      <span class="card-icon">&#128230;</span>
+      <h3>Local Docker</h3>
+      <p>Build and run locally. Each container is isolated with its own filesystem and network.</p>
+      <div class="cmd-box">
+        <span class="cmd-comment"># Build image</span><br>
+        <span class="cmd-prompt">$</span> <span class="cmd-text">docker build</span> <span class="cmd-flag">-t</span> <span class="cmd-str">hack-env:latest</span> <span class="cmd-flag">-f</span> <span class="cmd-text">server/Dockerfile .</span><br><br>
+        <span class="cmd-comment"># Run container</span><br>
+        <span class="cmd-prompt">$</span> <span class="cmd-text">docker run</span> <span class="cmd-flag">-p</span> <span class="cmd-str">8000:8000</span> <span class="cmd-text">hack-env</span><br><br>
+        <span class="cmd-comment"># Or use openenv CLI</span><br>
+        <span class="cmd-prompt">$</span> <span class="cmd-text">openenv build</span><br>
+        <span class="cmd-prompt">$</span> <span class="cmd-text">openenv serve hack_env</span>
+      </div>
+      <div class="badge-row">
+        <span class="deploy-badge b-docker">Docker</span>
+      </div>
+    </div>
+
+    <div class="deploy-card">
+      <span class="card-icon">&#129303;</span>
+      <h3>HuggingFace Spaces</h3>
+      <p>Push to HuggingFace for free hosting. Gets a public URL with auto-scaling.</p>
+      <div class="cmd-box">
+        <span class="cmd-comment"># Push to HF Spaces</span><br>
+        <span class="cmd-prompt">$</span> <span class="cmd-text">openenv push</span><br><br>
+        <span class="cmd-comment"># Connect from client</span><br>
+        <span class="cmd-text">env = HackEnv(base_url=</span><br>
+        <span class="cmd-str">&nbsp;&nbsp;"https://openenv-hack-env.hf.space"</span><br>
+        <span class="cmd-text">)</span><br><br>
+        <span class="cmd-comment"># Or use from_env factory</span><br>
+        <span class="cmd-text">env = </span><span class="cmd-flag">await</span><span class="cmd-text"> HackEnv.from_env(</span><br>
+        <span class="cmd-str">&nbsp;&nbsp;"openenv/hack-env"</span><span class="cmd-text">)</span>
+      </div>
+      <div class="badge-row">
+        <span class="deploy-badge b-hf">HuggingFace</span>
+      </div>
+    </div>
+
+    <div class="deploy-card">
+      <span class="card-icon">&#9729;</span>
+      <h3>Cloud Sandboxes</h3>
+      <p>Daytona or Docker Swarm for production-grade isolation and scaling.</p>
+      <div class="cmd-box">
+        <span class="cmd-comment"># Daytona cloud sandbox</span><br>
+        <span class="cmd-text">env = </span><span class="cmd-flag">await</span><span class="cmd-text"> HackEnv(</span><br>
+        <span class="cmd-str">&nbsp;&nbsp;provider=DaytonaProvider()</span><br>
+        <span class="cmd-text">)</span><br><br>
+        <span class="cmd-comment"># Docker Swarm (replicated)</span><br>
+        <span class="cmd-text">provider = DockerSwarmProvider()</span><br>
+        <span class="cmd-text">url = provider.start_container(</span><br>
+        <span class="cmd-str">&nbsp;&nbsp;"hack-env:latest"</span><span class="cmd-text">,</span><br>
+        <span class="cmd-str">&nbsp;&nbsp;replicas=4</span><br>
+        <span class="cmd-text">)</span>
+      </div>
+      <div class="badge-row">
+        <span class="deploy-badge b-cloud">Daytona</span>
+        <span class="deploy-badge b-docker">Swarm</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="dockerfile-section">
+    <div class="dockerfile-panel">
+      <div class="df-header">
+        <span class="code-dot dot-r"></span><span class="code-dot dot-y"></span><span class="code-dot dot-g"></span>
+        <span class="df-title">Dockerfile &mdash; Standard Pattern</span>
+      </div>
+      <div class="df-body">
+        <div class="df-col">
+          <span class="dc"># Stage 1: Build</span><br>
+          <span class="dk">ARG</span> <span class="da">BASE_IMAGE</span>=<span class="dv">ghcr.io/meta-pytorch/openenv-base:latest</span><br>
+          <span class="dk">FROM</span> <span class="dv">${BASE_IMAGE}</span> <span class="dk">AS</span> <span class="da">builder</span><br>
+          <span class="dk">WORKDIR</span> <span class="dv">/app</span><br>
+          <span class="dk">COPY</span> <span class="dv">. /app/env</span><br>
+          <span class="dk">RUN</span> <span class="dv">uv sync --frozen --no-editable</span>
+        </div>
+        <div class="df-col">
+          <span class="dc"># Stage 2: Runtime</span><br>
+          <span class="dk">FROM</span> <span class="dv">${BASE_IMAGE}</span><br>
+          <span class="dk">COPY</span> <span class="da">--from=builder</span> <span class="dv">/app/env /app/env</span><br>
+          <span class="dk">HEALTHCHECK</span> <span class="dk">CMD</span> <span class="dv">python -c "..."</span><br>
+          <span class="dk">CMD</span> <span class="dv">["uvicorn", "server.app:app",</span><br>
+          <span class="dv">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"--host", "0.0.0.0", "--port", "8000"]</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

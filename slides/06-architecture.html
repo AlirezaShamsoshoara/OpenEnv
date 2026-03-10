@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>OpenEnv Architecture</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1920px; height: 1080px; overflow: hidden; font-family: 'Inter', sans-serif; background: #0f172a; color: #f8fafc; }
+  .slide { width: 1920px; height: 1080px; padding: 70px 100px; position: relative; overflow: hidden; }
+  .bg-gradient {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 50% 30%, rgba(59,130,246,0.1) 0%, transparent 50%);
+  }
+  .slide-number { position: absolute; top: 40px; right: 60px; font-size: 14px; color: #475569; font-family: 'JetBrains Mono', monospace; z-index: 10; }
+  .section-label { font-size: 14px; text-transform: uppercase; letter-spacing: 3px; color: #3b82f6; margin-bottom: 20px; font-weight: 600; z-index: 2; position: relative; }
+  h2 { font-size: 52px; font-weight: 800; margin-bottom: 16px; z-index: 2; position: relative;
+    background: linear-gradient(135deg, #f8fafc, #93c5fd);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .subtitle-text { font-size: 20px; color: #94a3b8; margin-bottom: 40px; z-index: 2; position: relative; }
+
+  /* Architecture Diagram */
+  .arch-diagram {
+    z-index: 2; position: relative; display: flex; flex-direction: column;
+    align-items: center; gap: 20px;
+  }
+  .arch-row { display: flex; gap: 30px; align-items: stretch; }
+
+  .arch-box {
+    border-radius: 16px; padding: 24px 32px; text-align: center;
+    transition: all 0.3s; cursor: default; position: relative;
+  }
+  .arch-box:hover { transform: translateY(-4px); }
+  .arch-box h3 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .arch-box p { font-size: 13px; line-height: 1.5; }
+  .arch-box .mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; margin-top: 8px; }
+
+  /* Client Layer */
+  .box-client {
+    background: rgba(59,130,246,0.1); border: 1.5px solid rgba(59,130,246,0.3);
+    min-width: 300px;
+  }
+  .box-client h3 { color: #60a5fa; }
+  .box-client p { color: #93c5fd; }
+
+  /* API Layer */
+  .box-api {
+    background: rgba(245,158,11,0.1); border: 1.5px solid rgba(245,158,11,0.3);
+    min-width: 380px;
+  }
+  .box-api h3 { color: #fbbf24; }
+  .box-api p { color: #fde68a; }
+
+  /* Server Layer */
+  .box-server {
+    background: rgba(16,185,129,0.1); border: 1.5px solid rgba(16,185,129,0.3);
+    min-width: 300px;
+  }
+  .box-server h3 { color: #34d399; }
+  .box-server p { color: #86efac; }
+
+  /* Docker Layer */
+  .box-docker {
+    background: rgba(139,92,246,0.1); border: 1.5px solid rgba(139,92,246,0.3);
+    padding: 20px 60px;
+  }
+  .box-docker h3 { color: #a78bfa; }
+  .box-docker p { color: #c4b5fd; }
+
+  .connector-line {
+    width: 2px; height: 24px; background: rgba(148,163,184,0.3); margin: 0 auto;
+  }
+  .connector-arrow { text-align: center; color: #64748b; font-size: 18px; }
+
+  /* Side annotations */
+  .side-panel {
+    position: absolute; top: 300px; width: 280px; z-index: 2;
+  }
+  .side-left { left: 80px; }
+  .side-right { right: 80px; }
+  .annotation {
+    padding: 16px 18px; border-radius: 10px; margin-bottom: 12px;
+    font-size: 13px; line-height: 1.5;
+  }
+  .ann-blue { background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.2); color: #93c5fd; }
+  .ann-green { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); color: #86efac; }
+  .ann-amber { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); color: #fde68a; }
+  .ann-red { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: #fca5a5; }
+  .annotation strong { display: block; margin-bottom: 4px; font-size: 14px; }
+
+  .mode-badges {
+    display: flex; gap: 12px; justify-content: center; margin-top: 20px; z-index: 2; position: relative;
+  }
+  .mode-badge {
+    padding: 10px 24px; border-radius: 10px; font-size: 14px; font-weight: 600;
+  }
+  .mode-sim { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd; }
+  .mode-prod { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #86efac; }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="bg-gradient"></div>
+  <span class="slide-number">06 / 19</span>
+  <div class="section-label">Architecture</div>
+  <h2>The Dual API Design</h2>
+  <p class="subtitle-text">Two interfaces for two boundaries &mdash; training orchestration never leaks into agent interaction</p>
+
+  <div class="arch-diagram">
+    <!-- Client Row -->
+    <div class="arch-row">
+      <div class="arch-box box-client">
+        <h3>&#129302; Training Loop</h3>
+        <p>RL framework (TRL, torchforge)</p>
+        <div class="mono" style="color:#60a5fa;">env.reset() &middot; env.step() &middot; env.state()</div>
+      </div>
+      <div class="arch-box box-client">
+        <h3>&#129302; Agent (LLM)</h3>
+        <p>The model being trained</p>
+        <div class="mono" style="color:#60a5fa;">tools/list &middot; tools/call</div>
+      </div>
+    </div>
+
+    <div class="connector-arrow">&#8595; &nbsp; WebSocket &nbsp; &#8595;</div>
+
+    <!-- API Layer -->
+    <div class="arch-row">
+      <div class="arch-box box-api">
+        <h3>Gym-like API (WebSocket)</h3>
+        <p>Simulation control: reset, step, state, close</p>
+        <div class="mono" style="color:#fbbf24;">POST /reset &middot; POST /step &middot; WS /ws</div>
+      </div>
+      <div class="arch-box box-api">
+        <h3>MCP Protocol (JSON-RPC)</h3>
+        <p>Agent tools: domain-specific actions</p>
+        <div class="mono" style="color:#fbbf24;">POST /mcp &middot; WS /mcp</div>
+      </div>
+    </div>
+
+    <div class="connector-arrow">&#8595; &nbsp; FastAPI + HTTPEnvServer &nbsp; &#8595;</div>
+
+    <!-- Server Row -->
+    <div class="arch-row">
+      <div class="arch-box box-server">
+        <h3>Environment Instance</h3>
+        <p>Your custom environment logic</p>
+        <div class="mono" style="color:#34d399;">class MyEnv(MCPEnvironment)</div>
+      </div>
+      <div class="arch-box box-server">
+        <h3>Rubric System</h3>
+        <p>Reward computation (nn.Module-style)</p>
+        <div class="mono" style="color:#34d399;">Sequential, WeightedSum, Gate</div>
+      </div>
+    </div>
+
+    <div class="connector-arrow">&#8595; &nbsp; Container Boundary &nbsp; &#8595;</div>
+
+    <!-- Docker Row -->
+    <div class="arch-box box-docker" style="width: 700px;">
+      <h3>&#128230; Docker Container (Isolated Sandbox)</h3>
+      <p>Each environment runs in complete isolation &bull; Local Docker &bull; Swarm &bull; Daytona Cloud</p>
+    </div>
+  </div>
+
+  <!-- Side annotations -->
+  <div class="side-panel side-left">
+    <div class="annotation ann-red">
+      <strong>&#128274; Key Invariant</strong>
+      Agents can NEVER call reset(). If agents could undo consequences, training breaks.
+    </div>
+  </div>
+  <div class="side-panel side-right">
+    <div class="annotation ann-amber">
+      <strong>&#9202; Two Time Models</strong>
+      <strong style="font-size:12px;">Simulation:</strong> time freezes between steps<br>
+      <strong style="font-size:12px;">Production:</strong> real-time, no resets
+    </div>
+  </div>
+
+  <div class="mode-badges">
+    <span class="mode-badge mode-sim">SIMULATION mode &mdash; full API for training</span>
+    <span class="mode-badge mode-prod">PRODUCTION mode &mdash; safe API only (no reset/step)</span>
+  </div>
+</div>
+</body>
+</html>

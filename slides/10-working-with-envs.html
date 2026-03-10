@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>HackEnv - Working Demo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1920px; height: 1080px; overflow: hidden; font-family: 'Inter', sans-serif; background: #0f172a; color: #f8fafc; }
+  .slide { width: 1920px; height: 1080px; padding: 50px 70px 40px; position: relative; overflow: hidden; }
+  .bg-gradient {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 50% 50%, rgba(139,92,246,0.08) 0%, transparent 50%);
+  }
+  .slide-number { position: absolute; top: 30px; right: 50px; font-size: 14px; color: #475569; font-family: 'JetBrains Mono', monospace; z-index: 10; }
+  .top-bar { display: flex; align-items: center; gap: 20px; margin-bottom: 16px; z-index: 2; position: relative; }
+  .section-label { font-size: 13px; text-transform: uppercase; letter-spacing: 3px; color: #a78bfa; font-weight: 600; }
+  h2 { font-size: 40px; font-weight: 800;
+    background: linear-gradient(135deg, #f8fafc, #c4b5fd);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .content-area { display: flex; gap: 24px; z-index: 2; position: relative; }
+  .code-panel {
+    flex: 1; background: rgba(15,23,42,0.95); border: 1px solid rgba(148,163,184,0.12);
+    border-radius: 12px; overflow: hidden;
+  }
+  .code-header {
+    background: rgba(30,41,59,0.9); padding: 8px 16px;
+    display: flex; align-items: center; gap: 7px;
+    border-bottom: 1px solid rgba(148,163,184,0.1);
+  }
+  .code-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .dot-r { background: #ef4444; } .dot-y { background: #f59e0b; } .dot-g { background: #10b981; }
+  .code-title { font-size: 12px; color: #94a3b8; margin-left: 5px; font-family: 'JetBrains Mono', monospace; }
+  pre.code-body {
+    padding: 14px 16px; font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    line-height: 1.5; margin: 0; white-space: pre; background: transparent;
+  }
+  .kw { color: #c084fc; } .fn { color: #60a5fa; } .str { color: #34d399; }
+  .cm { color: #546e7a; font-style: italic; } .var { color: #f8fafc; }
+  .op { color: #94a3b8; } .cls { color: #f472b6; } .dec { color: #fb923c; }
+  .num { color: #fbbf24; } .type { color: #22d3ee; }
+
+  .terminal-panel { width: 520px; display: flex; flex-direction: column; gap: 12px; }
+  .terminal {
+    background: #0c0c0c; border: 1px solid rgba(148,163,184,0.12);
+    border-radius: 12px; overflow: hidden;
+  }
+  .terminal-header {
+    background: #1a1a2e; padding: 8px 14px;
+    display: flex; align-items: center; gap: 7px;
+    border-bottom: 1px solid rgba(148,163,184,0.08);
+  }
+  .terminal-title { font-size: 11px; color: #64748b; font-family: 'JetBrains Mono', monospace; }
+  pre.terminal-body {
+    padding: 12px 14px; font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
+    line-height: 1.5; color: #a3e635; margin: 0; white-space: pre; background: transparent;
+  }
+  .term-prompt { color: #10b981; }
+  .term-output { color: #d4d4d8; }
+  .term-reward { color: #fbbf24; }
+  .term-flag { color: #f87171; font-weight: 600; }
+  .term-success { color: #34d399; font-weight: 600; }
+  .term-dim { color: #64748b; }
+  .flow-arrow { text-align: center; color: #475569; font-size: 14px; padding: 2px 0; }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="bg-gradient"></div>
+  <span class="slide-number">10 / 19</span>
+  <div class="top-bar">
+    <div>
+      <div class="section-label">Live Example</div>
+      <h2>Working with Server &amp; Client</h2>
+    </div>
+  </div>
+
+  <div class="content-area">
+    <div class="code-panel">
+      <div class="code-header">
+        <span class="code-dot dot-r"></span><span class="code-dot dot-y"></span><span class="code-dot dot-g"></span>
+        <span class="code-title">run_hackenv.py</span>
+      </div>
+<pre class="code-body"><span class="kw">import</span> <span class="var">asyncio</span>
+<span class="kw">from</span> <span class="var">hack_env</span> <span class="kw">import</span> <span class="cls">HackEnv</span>
+<span class="kw">from</span> <span class="var">openenv</span> <span class="kw">import</span> <span class="cls">MCPToolClient</span>
+
+<span class="kw">async def</span> <span class="fn">main</span><span class="op">():</span>
+    <span class="cm"># Option 1: Typed client</span>
+    <span class="kw">async with</span> <span class="cls">HackEnv</span><span class="op">(</span>
+        <span class="var">base_url</span><span class="op">=</span><span class="str">"http://localhost:8000"</span>
+    <span class="op">) as</span> <span class="var">env</span><span class="op">:</span>
+
+        <span class="cm"># Reset - start new episode</span>
+        <span class="var">obs</span> <span class="op">=</span> <span class="kw">await</span> <span class="var">env</span><span class="op">.</span><span class="fn">reset</span><span class="op">()</span>
+        <span class="fn">print</span><span class="op">(</span><span class="var">obs</span><span class="op">.</span><span class="var">output</span><span class="op">)</span>
+
+        <span class="cm"># Step 1: Scan for open ports</span>
+        <span class="var">result</span> <span class="op">=</span> <span class="kw">await</span> <span class="var">env</span><span class="op">.</span><span class="fn">step</span><span class="op">(</span>
+            <span class="cls">CallToolAction</span><span class="op">(</span>
+                <span class="var">name</span><span class="op">=</span><span class="str">"scan_port"</span><span class="op">,</span>
+                <span class="var">arguments</span><span class="op">={</span>
+                    <span class="str">"host"</span><span class="op">:</span> <span class="str">"target.local"</span><span class="op">,</span>
+                    <span class="str">"port"</span><span class="op">:</span> <span class="num">8080</span>
+                <span class="op">}</span>
+            <span class="op">)</span>
+        <span class="op">)</span>
+        <span class="fn">print</span><span class="op">(</span><span class="var">result</span><span class="op">.</span><span class="var">observation</span><span class="op">.</span><span class="var">output</span><span class="op">)</span>
+        <span class="fn">print</span><span class="op">(</span><span class="str">f"Reward: {result.reward}"</span><span class="op">)</span>
+
+        <span class="cm"># Step 2: Test SQL injection</span>
+        <span class="var">result</span> <span class="op">=</span> <span class="kw">await</span> <span class="var">env</span><span class="op">.</span><span class="fn">step</span><span class="op">(</span>
+            <span class="cls">CallToolAction</span><span class="op">(</span>
+                <span class="var">name</span><span class="op">=</span><span class="str">"check_sql"</span><span class="op">,</span>
+                <span class="var">arguments</span><span class="op">={</span>
+                    <span class="str">"url"</span><span class="op">:</span> <span class="str">"/api/users"</span><span class="op">,</span>
+                    <span class="str">"payload"</span><span class="op">:</span> <span class="str">"' OR 1=1--"</span>
+                <span class="op">}</span>
+            <span class="op">)</span>
+        <span class="op">)</span>
+
+        <span class="cm"># Check state anytime</span>
+        <span class="var">state</span> <span class="op">=</span> <span class="kw">await</span> <span class="var">env</span><span class="op">.</span><span class="fn">state</span><span class="op">()</span>
+        <span class="fn">print</span><span class="op">(</span><span class="str">f"Found {state.vulnerabilities_found}/{state.total_flags}"</span><span class="op">)</span>
+
+<span class="var">asyncio</span><span class="op">.</span><span class="fn">run</span><span class="op">(</span><span class="fn">main</span><span class="op">())</span></pre>
+    </div>
+
+    <div class="terminal-panel">
+      <div class="terminal">
+        <div class="terminal-header">
+          <span class="code-dot dot-r"></span><span class="code-dot dot-y"></span><span class="code-dot dot-g"></span>
+          <span class="terminal-title">Terminal - Server</span>
+        </div>
+<pre class="terminal-body"><span class="term-prompt">$</span> uvicorn server.app:app --port 8000
+<span class="term-dim">INFO:     Uvicorn running on http://0.0.0.0:8000</span>
+<span class="term-dim">INFO:     WS connection opened (session: a1b2c3)</span>
+<span class="term-dim">INFO:     Environment created for session a1b2c3</span>
+<span class="term-success">INFO:     reset() called - new episode started</span>
+<span class="term-dim">INFO:     step() - tool: scan_port(8080)</span>
+<span class="term-flag">INFO:     FLAG FOUND: exposed_api</span>
+<span class="term-dim">INFO:     step() - tool: check_sql("' OR 1=1--")</span>
+<span class="term-flag">INFO:     FLAG FOUND: sql_inject</span></pre>
+      </div>
+
+      <div class="flow-arrow">&darr;</div>
+
+      <div class="terminal">
+        <div class="terminal-header">
+          <span class="code-dot dot-r"></span><span class="code-dot dot-y"></span><span class="code-dot dot-g"></span>
+          <span class="terminal-title">Terminal - Client Output</span>
+        </div>
+<pre class="terminal-body"><span class="term-prompt">$</span> python run_hackenv.py
+<span class="term-output">Target system ready. Find 5 flags.</span>
+
+<span class="term-output">OPEN - HTTP API (no auth)</span>
+<span class="term-reward">Reward: 0.2</span>
+
+<span class="term-output">VULNERABLE: SQL injection!</span>
+<span class="term-reward">Reward: 0.4</span>
+<span class="term-flag">Flags: ['exposed_api', 'sql_inject']</span>
+
+<span class="term-output">Found <span class="term-reward">2</span>/5 vulnerabilities</span>
+<span class="term-dim">(episode continues...)</span></pre>
+      </div>
+
+      <div style="padding: 12px 16px; background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.2); border-radius: 10px;">
+        <div style="font-size: 13px; font-weight: 700; color: #c4b5fd; margin-bottom: 4px;">Or use MCPToolClient (no subclass needed):</div>
+<pre style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #94a3b8; line-height: 1.5; margin: 0; white-space: pre; background: transparent;">async with MCPToolClient(base_url="...") as env:
+    tools = await env.list_tools()
+    result = await env.call_tool("scan_port",
+        host="target.local", port=8080)</pre>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

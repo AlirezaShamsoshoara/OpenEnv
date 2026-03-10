@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>Thank You</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1920px; height: 1080px; overflow: hidden; font-family: 'Inter', sans-serif; background: #0f172a; color: #f8fafc; }
+  .slide {
+    width: 1920px; height: 1080px; display: flex; flex-direction: column;
+    justify-content: center; align-items: center; position: relative; overflow: hidden;
+  }
+  .bg-gradient {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 30% 40%, rgba(59,130,246,0.12) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 60%, rgba(16,185,129,0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, rgba(139,92,246,0.08) 0%, transparent 50%);
+    animation: pulse 8s ease-in-out infinite alternate;
+  }
+  @keyframes pulse { 0% { opacity: 0.7; } 100% { opacity: 1; } }
+  .grid-pattern {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      linear-gradient(rgba(59,130,246,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59,130,246,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+  .content { position: relative; z-index: 2; text-align: center; }
+  h2 {
+    font-size: 80px; font-weight: 900; margin-bottom: 20px;
+    background: linear-gradient(135deg, #f8fafc 0%, #93c5fd 50%, #3b82f6 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .tagline {
+    font-size: 28px; color: #94a3b8; font-weight: 300; margin-bottom: 50px;
+    max-width: 800px; line-height: 1.5;
+  }
+  .links-row {
+    display: flex; gap: 24px; margin-bottom: 50px;
+  }
+  .link-card {
+    padding: 20px 32px; border-radius: 14px; text-align: center;
+    transition: all 0.3s; cursor: default; min-width: 240px;
+  }
+  .link-card:hover { transform: translateY(-4px); }
+  .lc-blue { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.25); }
+  .lc-green { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); }
+  .lc-purple { background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.25); }
+  .link-card .icon { font-size: 28px; margin-bottom: 10px; }
+  .link-card h4 { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+  .lc-blue h4 { color: #60a5fa; } .lc-green h4 { color: #34d399; } .lc-purple h4 { color: #a78bfa; }
+  .link-card p { font-size: 13px; font-family: 'JetBrains Mono', monospace; }
+  .lc-blue p { color: #93c5fd; } .lc-green p { color: #86efac; } .lc-purple p { color: #c4b5fd; }
+
+  .quick-start {
+    background: rgba(15,23,42,0.8); border: 1px solid rgba(59,130,246,0.15);
+    border-radius: 14px; padding: 24px 40px; font-family: 'JetBrains Mono', monospace;
+    font-size: 16px; color: #94a3b8; display: flex; gap: 32px; align-items: center;
+  }
+  .quick-start .prompt { color: #10b981; }
+  .quick-start .cmd { color: #f8fafc; }
+  .quick-start .sep { color: #334155; }
+
+  .slide-number { position: absolute; top: 40px; right: 60px; font-size: 14px; color: #475569; font-family: 'JetBrains Mono', monospace; z-index: 10; }
+
+  .bottom-text {
+    position: absolute; bottom: 50px; font-size: 16px; color: #475569; z-index: 2;
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="bg-gradient"></div>
+  <div class="grid-pattern"></div>
+  <span class="slide-number">19 / 19</span>
+
+  <div class="content">
+    <h2>Thank You!</h2>
+    <p class="tagline">
+      Build environments in minutes. Train agents with any framework.<br>
+      Deploy anywhere. Same API everywhere.
+    </p>
+
+    <div class="links-row">
+      <div class="link-card lc-blue">
+        <div class="icon">&#128187;</div>
+        <h4>GitHub</h4>
+        <p>github.com/meta-pytorch/OpenEnv</p>
+      </div>
+      <div class="link-card lc-green">
+        <div class="icon">&#128218;</div>
+        <h4>Documentation</h4>
+        <p>huggingface.co/docs/trl/openenv</p>
+      </div>
+      <div class="link-card lc-purple">
+        <div class="icon">&#129303;</div>
+        <h4>HuggingFace Spaces</h4>
+        <p>huggingface.co/openenv</p>
+      </div>
+    </div>
+
+    <div class="quick-start">
+      <span><span class="prompt">$</span> <span class="cmd">pip install openenv-core</span></span>
+      <span class="sep">|</span>
+      <span><span class="prompt">$</span> <span class="cmd">openenv init my_env</span></span>
+      <span class="sep">|</span>
+      <span><span class="prompt">$</span> <span class="cmd">openenv serve my_env</span></span>
+      <span class="sep">|</span>
+      <span><span class="prompt">$</span> <span class="cmd">openenv push</span></span>
+    </div>
+  </div>
+
+  <div class="bottom-text">
+    Questions? &nbsp;&bull;&nbsp; Contributions welcome &nbsp;&bull;&nbsp; Apache 2.0 License
+  </div>
+</div>
+</body>
+</html>

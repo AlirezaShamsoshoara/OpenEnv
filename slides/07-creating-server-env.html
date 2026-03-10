@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>Creating a Server Environment</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1920px; height: 1080px; overflow: hidden; font-family: 'Inter', sans-serif; background: #0f172a; color: #f8fafc; }
+  .slide { width: 1920px; height: 1080px; padding: 50px 80px 40px; position: relative; overflow: hidden; }
+  .bg-gradient {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 70% 40%, rgba(16,185,129,0.08) 0%, transparent 50%);
+  }
+  .slide-number { position: absolute; top: 30px; right: 50px; font-size: 14px; color: #475569; font-family: 'JetBrains Mono', monospace; z-index: 10; }
+  .section-label { font-size: 13px; text-transform: uppercase; letter-spacing: 3px; color: #10b981; margin-bottom: 10px; font-weight: 600; z-index: 2; position: relative; }
+  h2 { font-size: 44px; font-weight: 800; margin-bottom: 6px; z-index: 2; position: relative;
+    background: linear-gradient(135deg, #f8fafc, #86efac);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .subtitle-text { font-size: 16px; color: #94a3b8; margin-bottom: 20px; z-index: 2; position: relative; }
+  .content-area { display: flex; gap: 28px; z-index: 2; position: relative; }
+  /* File Tree */
+  .file-tree {
+    width: 320px; background: rgba(15,23,42,0.9); border: 1px solid rgba(16,185,129,0.2);
+    border-radius: 14px; padding: 20px 18px; flex-shrink: 0;
+  }
+  .file-tree h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: #64748b; margin-bottom: 14px; }
+  .tree-item {
+    font-family: 'JetBrains Mono', monospace; font-size: 13px; padding: 4px 0;
+    display: flex; align-items: center; gap: 7px; color: #cbd5e1;
+    transition: all 0.2s;
+  }
+  .tree-item:hover { color: #34d399; transform: translateX(4px); }
+  .tree-icon { width: 18px; text-align: center; flex-shrink: 0; }
+  .t-folder { color: #fbbf24; }
+  .t-py { color: #3b82f6; }
+  .t-yaml { color: #f472b6; }
+  .t-docker { color: #60a5fa; }
+  .t-txt { color: #94a3b8; }
+  .indent-1 { padding-left: 20px; }
+  .indent-2 { padding-left: 40px; }
+  .tree-desc { font-size: 10px; color: #64748b; margin-left: auto; }
+
+  /* Code panels */
+  .code-stack { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+  .code-panel {
+    background: rgba(15,23,42,0.9); border: 1px solid rgba(148,163,184,0.15);
+    border-radius: 10px; overflow: hidden;
+  }
+  .code-header {
+    background: rgba(30,41,59,0.8); padding: 7px 16px;
+    display: flex; align-items: center; gap: 7px;
+    border-bottom: 1px solid rgba(148,163,184,0.1);
+  }
+  .code-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .dot-r { background: #ef4444; } .dot-y { background: #f59e0b; } .dot-g { background: #10b981; }
+  .code-title { font-size: 12px; color: #94a3b8; margin-left: 5px; font-family: 'JetBrains Mono', monospace; }
+  .code-badge { margin-left: auto; font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+  .badge-models { background: rgba(245,158,11,0.2); color: #fbbf24; }
+  .badge-server { background: rgba(16,185,129,0.2); color: #34d399; }
+  .badge-app { background: rgba(139,92,246,0.2); color: #c4b5fd; }
+  pre.code-body {
+    padding: 12px 16px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px;
+    line-height: 1.55; margin: 0; white-space: pre; background: transparent;
+  }
+  .kw { color: #c084fc; } .fn { color: #60a5fa; } .str { color: #34d399; }
+  .cm { color: #64748b; font-style: italic; } .var { color: #f8fafc; }
+  .op { color: #94a3b8; } .cls { color: #f472b6; } .dec { color: #fb923c; }
+  .num { color: #fbbf24; } .type { color: #22d3ee; }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="bg-gradient"></div>
+  <span class="slide-number">07 / 19</span>
+  <div class="section-label">Building</div>
+  <h2>Creating a Server Environment</h2>
+  <p class="subtitle-text">Three files is all you need: models, environment logic, and an app entry point</p>
+
+  <div class="content-area">
+    <div class="file-tree">
+      <h3>&#128193; Environment Structure</h3>
+      <div class="tree-item"><span class="tree-icon t-folder">&#128193;</span> hack_env/</div>
+      <div class="tree-item indent-1"><span class="tree-icon t-py">&#128220;</span> __init__.py <span class="tree-desc">exports</span></div>
+      <div class="tree-item indent-1"><span class="tree-icon t-py">&#128220;</span> models.py <span class="tree-desc">types</span></div>
+      <div class="tree-item indent-1"><span class="tree-icon t-py">&#128220;</span> client.py <span class="tree-desc">client</span></div>
+      <div class="tree-item indent-1"><span class="tree-icon t-yaml">&#128196;</span> openenv.yaml <span class="tree-desc">manifest</span></div>
+      <div class="tree-item indent-1"><span class="tree-icon t-folder">&#128193;</span> server/</div>
+      <div class="tree-item indent-2"><span class="tree-icon t-py">&#128220;</span> hack_environment.py <span class="tree-desc">logic</span></div>
+      <div class="tree-item indent-2"><span class="tree-icon t-py">&#128220;</span> app.py <span class="tree-desc">entry</span></div>
+      <div class="tree-item indent-2"><span class="tree-icon t-txt">&#128196;</span> requirements.txt</div>
+      <div class="tree-item indent-2"><span class="tree-icon t-docker">&#128230;</span> Dockerfile</div>
+      <div style="margin-top: 18px; padding: 12px; background: rgba(16,185,129,0.08); border-radius: 8px; border: 1px solid rgba(16,185,129,0.2);">
+        <div style="font-size: 11px; color: #64748b; margin-bottom: 5px;">Quick scaffold:</div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #34d399;">$ openenv init hack_env</div>
+      </div>
+    </div>
+
+    <div class="code-stack">
+      <!-- models.py -->
+      <div class="code-panel">
+        <div class="code-header">
+          <span class="code-dot dot-r"></span><span class="code-dot dot-y"></span><span class="code-dot dot-g"></span>
+          <span class="code-title">models.py</span>
+          <span class="code-badge badge-models">Data Types</span>
+        </div>
+<pre class="code-body"><span class="kw">from</span> <span class="var">openenv</span> <span class="kw">import</span> <span class="cls">Action</span><span class="op">,</span> <span class="cls">Observation</span><span class="op">,</span> <span class="cls">State</span>
+
+<span class="kw">class</span> <span class="cls">HackAction</span><span class="op">(</span><span class="cls">Action</span><span class="op">):</span>
+    <span class="var">command</span><span class="op">:</span> <span class="type">str</span>              <span class="cm"># e.g. "nmap -sV target"</span>
+    <span class="var">target</span><span class="op">:</span> <span class="type">str</span> <span class="op">=</span> <span class="str">""</span>
+
+<span class="kw">class</span> <span class="cls">HackObservation</span><span class="op">(</span><span class="cls">Observation</span><span class="op">):</span>
+    <span class="var">output</span><span class="op">:</span> <span class="type">str</span> <span class="op">=</span> <span class="str">""</span>          <span class="cm"># command output</span>
+    <span class="var">flags_found</span><span class="op">:</span> <span class="type">list</span><span class="op">[</span><span class="type">str</span><span class="op">]</span> <span class="op">=</span> <span class="op">[]</span>
+
+<span class="kw">class</span> <span class="cls">HackState</span><span class="op">(</span><span class="cls">State</span><span class="op">):</span>
+    <span class="var">vulnerabilities_found</span><span class="op">:</span> <span class="type">int</span> <span class="op">=</span> <span class="num">0</span>
+    <span class="var">total_flags</span><span class="op">:</span> <span class="type">int</span> <span class="op">=</span> <span class="num">5</span></pre>
+      </div>
+
+      <!-- server/hack_environment.py -->
+      <div class="code-panel">
+        <div class="code-header">
+          <span class="code-dot dot-r"></span><span class="code-dot dot-y"></span><span class="code-dot dot-g"></span>
+          <span class="code-title">server/hack_environment.py</span>
+          <span class="code-badge badge-server">Core Logic</span>
+        </div>
+<pre class="code-body"><span class="kw">from</span> <span class="var">openenv</span> <span class="kw">import</span> <span class="cls">MCPEnvironment</span>
+<span class="kw">from</span> <span class="var">mcp.server.fastmcp</span> <span class="kw">import</span> <span class="cls">FastMCP</span>
+
+<span class="kw">class</span> <span class="cls">HackEnvironment</span><span class="op">(</span><span class="cls">MCPEnvironment</span><span class="op">):</span>
+    <span class="kw">def</span> <span class="fn">__init__</span><span class="op">(</span><span class="var">self</span><span class="op">):</span>
+        <span class="var">mcp</span> <span class="op">=</span> <span class="cls">FastMCP</span><span class="op">(</span><span class="str">"hack_env"</span><span class="op">)</span>
+        <span class="dec">@mcp.tool</span>
+        <span class="kw">def</span> <span class="fn">scan_port</span><span class="op">(</span><span class="var">target</span><span class="op">:</span> <span class="type">str</span><span class="op">,</span> <span class="var">port</span><span class="op">:</span> <span class="type">int</span><span class="op">) -></span> <span class="type">str</span><span class="op">: ...</span>
+        <span class="dec">@mcp.tool</span>
+        <span class="kw">def</span> <span class="fn">exploit_vuln</span><span class="op">(</span><span class="var">vuln_id</span><span class="op">:</span> <span class="type">str</span><span class="op">) -></span> <span class="type">dict</span><span class="op">: ...</span>
+        <span class="kw">super</span><span class="op">().</span><span class="fn">__init__</span><span class="op">(</span><span class="var">mcp</span><span class="op">)</span>
+
+    <span class="kw">def</span> <span class="fn">reset</span><span class="op">(</span><span class="var">self</span><span class="op">, **</span><span class="var">kw</span><span class="op">) -></span> <span class="cls">HackObservation</span><span class="op">: ...</span>
+    <span class="kw">def</span> <span class="fn">step</span><span class="op">(</span><span class="var">self</span><span class="op">,</span> <span class="var">action</span><span class="op">, **</span><span class="var">kw</span><span class="op">) -></span> <span class="cls">HackObservation</span><span class="op">: ...</span></pre>
+      </div>
+
+      <!-- server/app.py -->
+      <div class="code-panel">
+        <div class="code-header">
+          <span class="code-dot dot-r"></span><span class="code-dot dot-y"></span><span class="code-dot dot-g"></span>
+          <span class="code-title">server/app.py</span>
+          <span class="code-badge badge-app">Entry Point</span>
+        </div>
+<pre class="code-body"><span class="kw">from</span> <span class="var">openenv</span> <span class="kw">import</span> <span class="fn">create_app</span>
+<span class="kw">from</span> <span class="var">.hack_environment</span> <span class="kw">import</span> <span class="cls">HackEnvironment</span>
+<span class="kw">from</span> <span class="var">..models</span> <span class="kw">import</span> <span class="cls">HackAction</span><span class="op">,</span> <span class="cls">HackObservation</span>
+
+<span class="var">app</span> <span class="op">=</span> <span class="fn">create_app</span><span class="op">(</span><span class="cls">HackEnvironment</span><span class="op">,</span> <span class="cls">HackAction</span><span class="op">,</span> <span class="cls">HackObservation</span><span class="op">,</span> <span class="var">env_name</span><span class="op">=</span><span class="str">"hack_env"</span><span class="op">)</span>
+<span class="cm"># Pass class (factory), NOT instance &mdash; each WS session gets its own env!</span></pre>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

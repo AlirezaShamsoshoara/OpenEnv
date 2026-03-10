@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>Scaling</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1920px; height: 1080px; overflow: hidden; font-family: 'Inter', sans-serif; background: #0f172a; color: #f8fafc; }
+  .slide { width: 1920px; height: 1080px; padding: 60px 80px; position: relative; overflow: hidden; }
+  .bg-gradient {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 80% 50%, rgba(245,158,11,0.08) 0%, transparent 50%);
+  }
+  .slide-number { position: absolute; top: 40px; right: 60px; font-size: 14px; color: #475569; font-family: 'JetBrains Mono', monospace; z-index: 10; }
+  .section-label { font-size: 14px; text-transform: uppercase; letter-spacing: 3px; color: #f59e0b; margin-bottom: 20px; font-weight: 600; z-index: 2; position: relative; }
+  h2 { font-size: 48px; font-weight: 800; margin-bottom: 12px; z-index: 2; position: relative;
+    background: linear-gradient(135deg, #f8fafc, #fde68a);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .subtitle-text { font-size: 18px; color: #94a3b8; margin-bottom: 32px; z-index: 2; position: relative; }
+  .content-area { display: flex; gap: 30px; z-index: 2; position: relative; }
+
+  /* Three scaling strategies */
+  .strategy-col { flex: 1; display: flex; flex-direction: column; gap: 16px; }
+  .strategy-header {
+    padding: 20px 24px; border-radius: 14px 14px 0 0;
+    border-bottom: none;
+  }
+  .strategy-header h3 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .strategy-header p { font-size: 13px; }
+  .sh-blue { background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.25); }
+  .sh-blue h3 { color: #60a5fa; } .sh-blue p { color: #93c5fd; }
+  .sh-green { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.25); }
+  .sh-green h3 { color: #34d399; } .sh-green p { color: #86efac; }
+  .sh-amber { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.25); }
+  .sh-amber h3 { color: #fbbf24; } .sh-amber p { color: #fde68a; }
+
+  /* Diagram boxes */
+  .diagram-area {
+    background: rgba(15,23,42,0.8); border: 1px solid rgba(148,163,184,0.1);
+    border-radius: 0 0 14px 14px; padding: 20px; flex: 1;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .env-row { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+  .env-box {
+    width: 48px; height: 48px; border-radius: 8px; display: flex;
+    align-items: center; justify-content: center; font-size: 11px;
+    font-family: 'JetBrains Mono', monospace; font-weight: 600;
+    transition: all 0.3s;
+  }
+  .env-box:hover { transform: scale(1.15); }
+  .eb-blue { background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.3); color: #60a5fa; }
+  .eb-green { background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.3); color: #34d399; }
+  .eb-amber { background: rgba(245,158,11,0.2); border: 1px solid rgba(245,158,11,0.3); color: #fbbf24; }
+
+  pre.code-snippet {
+    background: rgba(15,23,42,0.9); border: 1px solid rgba(148,163,184,0.1);
+    border-radius: 8px; padding: 14px 16px; font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; line-height: 1.6; margin: 0; white-space: pre;
+  }
+  .kw { color: #c084fc; } .fn { color: #60a5fa; } .str { color: #34d399; }
+  .cm { color: #546e7a; font-style: italic; } .var { color: #f8fafc; }
+  .op { color: #94a3b8; } .cls { color: #f472b6; } .num { color: #fbbf24; }
+
+  .label-tag {
+    font-size: 11px; text-align: center; color: #64748b;
+    text-transform: uppercase; letter-spacing: 1px; margin-top: 4px;
+  }
+
+  /* Bottom rule */
+  .bottom-rule {
+    position: absolute; bottom: 40px; left: 80px; right: 80px;
+    padding: 18px 24px; border-radius: 12px;
+    background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.15);
+    display: flex; align-items: center; gap: 20px; z-index: 2;
+  }
+  .rule-icon { font-size: 28px; }
+  .rule-text { font-size: 15px; color: #fde68a; }
+  .rule-text strong { color: #fbbf24; }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="bg-gradient"></div>
+  <span class="slide-number">12 / 19</span>
+  <div class="section-label">Scaling</div>
+  <h2>Multi-Env / Multi-Session / Multi-Worker</h2>
+  <p class="subtitle-text">One environment = one trajectory. To scale, stack environment instances.</p>
+
+  <div class="content-area">
+    <!-- Strategy 1: Concurrent Sessions -->
+    <div class="strategy-col">
+      <div class="strategy-header sh-blue">
+        <h3>&#9312; Concurrent Sessions</h3>
+        <p>Multiple WebSocket connections on one server</p>
+      </div>
+      <div class="diagram-area">
+        <div class="label-tag">Single Server, N Sessions</div>
+        <div style="text-align:center; padding: 8px; background: rgba(59,130,246,0.08); border-radius: 8px; font-size: 13px; color: #60a5fa; font-weight: 600;">
+          FastAPI Server (:8000)
+        </div>
+        <div class="env-row">
+          <div class="env-box eb-blue">S1</div>
+          <div class="env-box eb-blue">S2</div>
+          <div class="env-box eb-blue">S3</div>
+          <div class="env-box eb-blue">S4</div>
+        </div>
+<pre class="code-snippet"><span class="cm"># Server-side config</span>
+<span class="var">app</span> <span class="op">=</span> <span class="fn">create_app</span><span class="op">(</span>
+    <span class="cls">HackEnv</span><span class="op">,</span>
+    <span class="var">max_concurrent_envs</span><span class="op">=</span><span class="num">4</span><span class="op">,</span>
+    <span class="var">session_timeout</span><span class="op">=</span><span class="num">300</span>
+<span class="op">)</span>
+<span class="cm"># Requires:</span>
+<span class="var">SUPPORTS_CONCURRENT_SESSIONS</span> <span class="op">=</span> <span class="kw">True</span></pre>
+      </div>
+    </div>
+
+    <!-- Strategy 2: Docker Swarm -->
+    <div class="strategy-col">
+      <div class="strategy-header sh-green">
+        <h3>&#9313; Docker Swarm Replicas</h3>
+        <p>Horizontal scaling with load balancing</p>
+      </div>
+      <div class="diagram-area">
+        <div class="label-tag">Load Balancer &rarr; N Replicas</div>
+        <div style="text-align:center; padding: 8px; background: rgba(16,185,129,0.08); border-radius: 8px; font-size: 13px; color: #34d399; font-weight: 600;">
+          Docker Swarm Mesh
+        </div>
+        <div class="env-row">
+          <div class="env-box eb-green">R1</div>
+          <div class="env-box eb-green">R2</div>
+          <div class="env-box eb-green">R3</div>
+          <div class="env-box eb-green">R4</div>
+        </div>
+<pre class="code-snippet"><span class="var">provider</span> <span class="op">=</span> <span class="cls">DockerSwarmProvider</span><span class="op">()</span>
+<span class="var">url</span> <span class="op">=</span> <span class="var">provider</span><span class="op">.</span><span class="fn">start_container</span><span class="op">(</span>
+    <span class="str">"hack-env:latest"</span><span class="op">,</span>
+    <span class="var">replicas</span><span class="op">=</span><span class="num">4</span><span class="op">,</span>
+    <span class="var">cpu_limit</span><span class="op">=</span><span class="str">"2.0"</span><span class="op">,</span>
+    <span class="var">memory_limit</span><span class="op">=</span><span class="str">"4g"</span>
+<span class="op">)</span></pre>
+      </div>
+    </div>
+
+    <!-- Strategy 3: Cloud Batch -->
+    <div class="strategy-col">
+      <div class="strategy-header sh-amber">
+        <h3>&#9314; Cloud Batch (N Workers)</h3>
+        <p>Parallel isolated sandboxes for batch RL</p>
+      </div>
+      <div class="diagram-area">
+        <div class="label-tag">asyncio.gather &rarr; N Sandboxes</div>
+        <div style="text-align:center; padding: 8px; background: rgba(245,158,11,0.08); border-radius: 8px; font-size: 13px; color: #fbbf24; font-weight: 600;">
+          Daytona Cloud
+        </div>
+        <div class="env-row">
+          <div class="env-box eb-amber">W1</div>
+          <div class="env-box eb-amber">W2</div>
+          <div class="env-box eb-amber">W3</div>
+          <div class="env-box eb-amber">W4</div>
+          <div class="env-box eb-amber">W5</div>
+          <div class="env-box eb-amber">W6</div>
+          <div class="env-box eb-amber">W7</div>
+          <div class="env-box eb-amber">W8</div>
+        </div>
+<pre class="code-snippet"><span class="cm"># Batch training pattern</span>
+<span class="var">results</span> <span class="op">=</span> <span class="kw">await</span> <span class="var">asyncio</span><span class="op">.</span><span class="fn">gather</span><span class="op">(</span>
+    <span class="op">*(</span><span class="fn">run_episode</span><span class="op">(</span><span class="var">i</span><span class="op">)</span>
+      <span class="kw">for</span> <span class="var">i</span> <span class="kw">in</span> <span class="fn">range</span><span class="op">(</span><span class="num">64</span><span class="op">))</span>
+<span class="op">)</span>
+<span class="cm"># 64 parallel episodes!</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-rule">
+    <span class="rule-icon">&#128161;</span>
+    <span class="rule-text">
+      <strong>Key principle:</strong> Environments do not support multiplexed trajectories. To generate batches, stack multiple environment instances.
+      Helpers like <strong>EnvPool</strong> orchestrate batch collection across the stack.
+    </span>
+  </div>
+</div>
+</body>
+</html>

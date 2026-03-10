@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>RL Basics</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1920px; height: 1080px; overflow: hidden; font-family: 'Inter', sans-serif; background: #0f172a; color: #f8fafc; }
+  .slide { width: 1920px; height: 1080px; padding: 70px 100px; position: relative; overflow: hidden; }
+  .bg-gradient {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 50% 50%, rgba(245,158,11,0.08) 0%, transparent 50%);
+  }
+  .slide-number { position: absolute; top: 40px; right: 60px; font-size: 14px; color: #475569; font-family: 'JetBrains Mono', monospace; z-index: 10; }
+  .section-label { font-size: 14px; text-transform: uppercase; letter-spacing: 3px; color: #f59e0b; margin-bottom: 20px; font-weight: 600; z-index: 2; position: relative; }
+  h2 { font-size: 56px; font-weight: 800; margin-bottom: 40px; z-index: 2; position: relative;
+    background: linear-gradient(135deg, #f8fafc, #fde68a);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .content-area { display: flex; gap: 60px; z-index: 2; position: relative; }
+  .left-col { flex: 1; }
+  .right-col { flex: 1; }
+
+  /* RL Loop Diagram */
+  .rl-diagram {
+    width: 100%; padding: 40px; background: rgba(30,41,59,0.5);
+    border: 1px solid rgba(148,163,184,0.1); border-radius: 20px;
+    position: relative; min-height: 420px;
+  }
+  .rl-node {
+    position: absolute; padding: 20px 32px; border-radius: 14px;
+    font-weight: 700; font-size: 20px; text-align: center; transition: all 0.3s;
+  }
+  .rl-node:hover { transform: scale(1.08); }
+  .node-agent {
+    top: 40px; left: 50%; transform: translateX(-50%);
+    background: linear-gradient(135deg, rgba(59,130,246,0.3), rgba(59,130,246,0.15));
+    border: 2px solid #3b82f6; color: #93c5fd;
+  }
+  .node-agent:hover { transform: translateX(-50%) scale(1.08); }
+  .node-env {
+    bottom: 40px; left: 50%; transform: translateX(-50%);
+    background: linear-gradient(135deg, rgba(16,185,129,0.3), rgba(16,185,129,0.15));
+    border: 2px solid #10b981; color: #6ee7b7;
+  }
+  .node-env:hover { transform: translateX(-50%) scale(1.08); }
+  .node-sub { font-size: 13px; font-weight: 400; color: #94a3b8; margin-top: 4px; }
+
+  /* Arrows */
+  .arrow-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+  .arrow-path { fill: none; stroke-width: 2; }
+  .arrow-action { stroke: #f59e0b; }
+  .arrow-obs { stroke: #a78bfa; }
+  .arrow-label {
+    position: absolute; font-size: 14px; font-family: 'JetBrains Mono', monospace;
+    padding: 6px 14px; border-radius: 6px;
+  }
+  .label-action {
+    right: 60px; top: 50%; transform: translateY(-50%);
+    background: rgba(245,158,11,0.15); color: #fbbf24;
+    border: 1px solid rgba(245,158,11,0.3);
+  }
+  .label-obs {
+    left: 60px; top: 50%; transform: translateY(-50%);
+    background: rgba(139,92,246,0.15); color: #c4b5fd;
+    border: 1px solid rgba(139,92,246,0.3);
+  }
+
+  /* Concepts */
+  .concept-card {
+    background: rgba(30,41,59,0.5); border: 1px solid rgba(148,163,184,0.1);
+    border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; transition: all 0.3s;
+  }
+  .concept-card:hover { border-color: #f59e0b; transform: translateX(4px); }
+  .concept-card h4 {
+    font-size: 18px; font-weight: 700; margin-bottom: 6px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .concept-card p { font-size: 15px; color: #94a3b8; line-height: 1.5; }
+  .concept-card code {
+    font-family: 'JetBrains Mono', monospace; background: rgba(245,158,11,0.1);
+    padding: 2px 8px; border-radius: 4px; font-size: 14px; color: #fbbf24;
+  }
+  .c-blue { color: #60a5fa; }
+  .c-green { color: #34d399; }
+  .c-amber { color: #fbbf24; }
+  .c-purple { color: #a78bfa; }
+  .c-red { color: #f87171; }
+
+  .formula-bar {
+    margin-top: 20px; padding: 20px 24px; background: rgba(30,41,59,0.7);
+    border: 1px solid rgba(245,158,11,0.2); border-radius: 12px;
+    font-family: 'JetBrains Mono', monospace; font-size: 18px; text-align: center;
+    color: #fde68a;
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="bg-gradient"></div>
+  <span class="slide-number">04 / 19</span>
+  <div class="section-label">Background</div>
+  <h2>Reinforcement Learning Basics</h2>
+
+  <div class="content-area">
+    <div class="left-col">
+      <div class="rl-diagram">
+        <svg class="arrow-svg" viewBox="0 0 750 420">
+          <!-- Action arrow (right side, down) -->
+          <path d="M 480 100 Q 560 210 480 320" class="arrow-path arrow-action" marker-end="url(#arrowAmber)"/>
+          <!-- Observation arrow (left side, up) -->
+          <path d="M 270 320 Q 190 210 270 100" class="arrow-path arrow-obs" marker-end="url(#arrowPurple)"/>
+          <defs>
+            <marker id="arrowAmber" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#f59e0b"/>
+            </marker>
+            <marker id="arrowPurple" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#a78bfa"/>
+            </marker>
+          </defs>
+        </svg>
+        <div class="rl-node node-agent">
+          &#129302; Agent (Policy)
+          <div class="node-sub">Decides what action to take</div>
+        </div>
+        <div class="rl-node node-env">
+          &#127758; Environment
+          <div class="node-sub">Simulates the world</div>
+        </div>
+        <span class="arrow-label label-action">action a<sub>t</sub></span>
+        <span class="arrow-label label-obs">obs, reward, done</span>
+      </div>
+      <div class="formula-bar">
+        G = &sum; &gamma;<sup>t</sup> &middot; r<sub>t</sub> &nbsp;&nbsp;(maximize cumulative reward)
+      </div>
+    </div>
+    <div class="right-col">
+      <div class="concept-card">
+        <h4><span class="c-blue">&#9679;</span> Agent</h4>
+        <p>The learner. Takes <code>observations</code> and outputs <code>actions</code>. In LLM RL, this is the language model itself.</p>
+      </div>
+      <div class="concept-card">
+        <h4><span class="c-green">&#9679;</span> Environment</h4>
+        <p>The world. Receives an action, updates state, returns <code>observation</code>, <code>reward</code>, and <code>done</code> flag.</p>
+      </div>
+      <div class="concept-card">
+        <h4><span class="c-amber">&#9679;</span> Action</h4>
+        <p>What the agent does. In agentic RL: tool calls, code execution, text responses. Sent via <code>env.step(action)</code>.</p>
+      </div>
+      <div class="concept-card">
+        <h4><span class="c-purple">&#9679;</span> Observation</h4>
+        <p>What the agent sees after acting. Contains <code>reward</code> (scalar feedback) and <code>done</code> (episode over?).</p>
+      </div>
+      <div class="concept-card">
+        <h4><span class="c-red">&#9679;</span> Episode</h4>
+        <p>One full interaction: <code>reset()</code> &rarr; multiple <code>step()</code> calls &rarr; <code>done=True</code>. Then start a new episode.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

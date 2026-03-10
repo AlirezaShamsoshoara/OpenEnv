@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>HackEnv - Server Implementation</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1920px; height: 1080px; overflow: hidden; font-family: 'Inter', sans-serif; background: #0f172a; color: #f8fafc; }
+  .slide { width: 1920px; height: 1080px; padding: 50px 70px 40px; position: relative; overflow: hidden; }
+  .bg-gradient {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 20% 80%, rgba(239,68,68,0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(16,185,129,0.06) 0%, transparent 50%);
+  }
+  .slide-number { position: absolute; top: 30px; right: 50px; font-size: 14px; color: #475569; font-family: 'JetBrains Mono', monospace; z-index: 10; }
+  .top-bar { display: flex; align-items: center; gap: 20px; margin-bottom: 16px; z-index: 2; position: relative; }
+  .section-label { font-size: 13px; text-transform: uppercase; letter-spacing: 3px; color: #ef4444; font-weight: 600; }
+  h2 { font-size: 40px; font-weight: 800;
+    background: linear-gradient(135deg, #f8fafc, #fca5a5);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .env-badge {
+    margin-left: auto; padding: 6px 16px; border-radius: 8px; font-size: 13px;
+    font-family: 'JetBrains Mono', monospace; font-weight: 600;
+    background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5;
+  }
+  .code-area { display: flex; gap: 20px; z-index: 2; position: relative; }
+  .code-panel {
+    flex: 1; background: rgba(15,23,42,0.95); border: 1px solid rgba(148,163,184,0.12);
+    border-radius: 12px; overflow: hidden; display: flex; flex-direction: column;
+  }
+  .code-header {
+    background: rgba(30,41,59,0.9); padding: 8px 16px;
+    display: flex; align-items: center; gap: 7px;
+    border-bottom: 1px solid rgba(148,163,184,0.1); flex-shrink: 0;
+  }
+  .code-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .dot-r { background: #ef4444; } .dot-y { background: #f59e0b; } .dot-g { background: #10b981; }
+  .code-title { font-size: 12px; color: #94a3b8; margin-left: 5px; font-family: 'JetBrains Mono', monospace; }
+  pre.code-body {
+    padding: 14px 16px; font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    line-height: 1.5; margin: 0; white-space: pre; background: transparent; flex: 1;
+  }
+  .kw { color: #c084fc; } .fn { color: #60a5fa; } .str { color: #34d399; }
+  .cm { color: #546e7a; font-style: italic; } .var { color: #f8fafc; }
+  .op { color: #94a3b8; } .cls { color: #f472b6; } .dec { color: #fb923c; }
+  .num { color: #fbbf24; } .type { color: #22d3ee; }
+  .note-box {
+    margin-top: 10px; padding: 10px 14px; border-radius: 8px; font-size: 11px;
+    font-family: 'Inter', sans-serif; line-height: 1.5;
+  }
+  .note-green { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); color: #86efac; }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="bg-gradient"></div>
+  <span class="slide-number">08 / 19</span>
+  <div class="top-bar">
+    <div>
+      <div class="section-label">Example Deep Dive</div>
+      <h2>HackEnv &mdash; Full Server Implementation</h2>
+    </div>
+    <span class="env-badge">&#128274; hack_env</span>
+  </div>
+
+  <div class="code-area">
+    <div class="code-panel">
+      <div class="code-header">
+        <span class="code-dot dot-r"></span><span class="code-dot dot-y"></span><span class="code-dot dot-g"></span>
+        <span class="code-title">server/hack_environment.py</span>
+      </div>
+<pre class="code-body"><span class="kw">from</span> <span class="var">uuid</span> <span class="kw">import</span> <span class="var">uuid4</span>
+<span class="kw">from</span> <span class="var">openenv</span> <span class="kw">import</span> <span class="cls">MCPEnvironment</span>
+<span class="kw">from</span> <span class="var">mcp.server.fastmcp</span> <span class="kw">import</span> <span class="cls">FastMCP</span>
+<span class="kw">from</span> <span class="var">..models</span> <span class="kw">import</span> <span class="cls">HackObservation</span><span class="op">,</span> <span class="cls">HackState</span>
+
+<span class="kw">class</span> <span class="cls">HackEnvironment</span><span class="op">(</span><span class="cls">MCPEnvironment</span><span class="op">):</span>
+    <span class="cm"># Hidden CTF flags the agent must discover</span>
+    <span class="var">FLAGS</span> <span class="op">=</span> <span class="op">{</span><span class="str">"web_vuln"</span><span class="op">,</span> <span class="str">"sql_inject"</span><span class="op">,</span> <span class="str">"priv_esc"</span><span class="op">,</span>
+             <span class="str">"exposed_api"</span><span class="op">,</span> <span class="str">"weak_creds"</span><span class="op">}</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span><span class="op">(</span><span class="var">self</span><span class="op">):</span>
+        <span class="var">mcp</span> <span class="op">=</span> <span class="cls">FastMCP</span><span class="op">(</span><span class="str">"hack_env"</span><span class="op">)</span>
+
+        <span class="dec">@mcp.tool</span>
+        <span class="kw">def</span> <span class="fn">scan_port</span><span class="op">(</span><span class="var">host</span><span class="op">:</span> <span class="type">str</span><span class="op">,</span> <span class="var">port</span><span class="op">:</span> <span class="type">int</span><span class="op">) -></span> <span class="type">str</span><span class="op">:</span>
+            <span class="str">"""Scan a port on the target host."""</span>
+            <span class="kw">if</span> <span class="var">port</span> <span class="op">==</span> <span class="num">8080</span><span class="op">:</span>
+                <span class="var">self</span><span class="op">.</span><span class="var">_found</span><span class="op">.</span><span class="fn">add</span><span class="op">(</span><span class="str">"exposed_api"</span><span class="op">)</span>
+                <span class="kw">return</span> <span class="str">"OPEN - HTTP API (no auth)"</span>
+            <span class="kw">return</span> <span class="str">f"Port {port}: closed"</span>
+
+        <span class="dec">@mcp.tool</span>
+        <span class="kw">def</span> <span class="fn">check_sql</span><span class="op">(</span><span class="var">url</span><span class="op">:</span> <span class="type">str</span><span class="op">,</span> <span class="var">payload</span><span class="op">:</span> <span class="type">str</span><span class="op">) -></span> <span class="type">str</span><span class="op">:</span>
+            <span class="str">"""Test SQL injection on endpoint."""</span>
+            <span class="kw">if</span> <span class="str">"' OR"</span> <span class="kw">in</span> <span class="var">payload</span><span class="op">:</span>
+                <span class="var">self</span><span class="op">.</span><span class="var">_found</span><span class="op">.</span><span class="fn">add</span><span class="op">(</span><span class="str">"sql_inject"</span><span class="op">)</span>
+                <span class="kw">return</span> <span class="str">"VULNERABLE: SQL injection!"</span>
+            <span class="kw">return</span> <span class="str">"No vulnerability found"</span>
+
+        <span class="dec">@mcp.tool</span>
+        <span class="kw">def</span> <span class="fn">brute_login</span><span class="op">(</span><span class="var">user</span><span class="op">:</span> <span class="type">str</span><span class="op">,</span> <span class="var">pwd</span><span class="op">:</span> <span class="type">str</span><span class="op">) -></span> <span class="type">str</span><span class="op">:</span>
+            <span class="str">"""Attempt login with credentials."""</span>
+            <span class="kw">if</span> <span class="var">pwd</span> <span class="kw">in</span> <span class="op">[</span><span class="str">"admin"</span><span class="op">,</span> <span class="str">"password"</span><span class="op">,</span> <span class="str">"123456"</span><span class="op">]:</span>
+                <span class="var">self</span><span class="op">.</span><span class="var">_found</span><span class="op">.</span><span class="fn">add</span><span class="op">(</span><span class="str">"weak_creds"</span><span class="op">)</span>
+                <span class="kw">return</span> <span class="str">"LOGIN SUCCESS (weak password!)"</span>
+            <span class="kw">return</span> <span class="str">"Login failed"</span>
+
+        <span class="kw">super</span><span class="op">().</span><span class="fn">__init__</span><span class="op">(</span><span class="var">mcp</span><span class="op">)</span>
+        <span class="var">self</span><span class="op">.</span><span class="var">_state</span> <span class="op">=</span> <span class="cls">HackState</span><span class="op">()</span>
+        <span class="var">self</span><span class="op">.</span><span class="var">_found</span> <span class="op">=</span> <span class="fn">set</span><span class="op">()</span></pre>
+    </div>
+
+    <div class="code-panel">
+      <div class="code-header">
+        <span class="code-dot dot-r"></span><span class="code-dot dot-y"></span><span class="code-dot dot-g"></span>
+        <span class="code-title">server/hack_environment.py (continued)</span>
+      </div>
+<pre class="code-body">    <span class="kw">def</span> <span class="fn">reset</span><span class="op">(</span><span class="var">self</span><span class="op">,</span> <span class="var">seed</span><span class="op">=</span><span class="kw">None</span><span class="op">,</span> <span class="var">episode_id</span><span class="op">=</span><span class="kw">None</span><span class="op">,</span>
+              <span class="op">**</span><span class="var">kwargs</span><span class="op">) -></span> <span class="cls">HackObservation</span><span class="op">:</span>
+        <span class="var">self</span><span class="op">.</span><span class="var">_found</span> <span class="op">=</span> <span class="fn">set</span><span class="op">()</span>
+        <span class="var">self</span><span class="op">.</span><span class="var">_state</span> <span class="op">=</span> <span class="cls">HackState</span><span class="op">(</span>
+            <span class="var">episode_id</span><span class="op">=</span><span class="var">episode_id</span> <span class="kw">or</span> <span class="fn">str</span><span class="op">(</span><span class="fn">uuid4</span><span class="op">()),</span>
+            <span class="var">step_count</span><span class="op">=</span><span class="num">0</span><span class="op">,</span>
+            <span class="var">total_flags</span><span class="op">=</span><span class="fn">len</span><span class="op">(</span><span class="var">self</span><span class="op">.</span><span class="var">FLAGS</span><span class="op">)</span>
+        <span class="op">)</span>
+        <span class="kw">return</span> <span class="cls">HackObservation</span><span class="op">(</span>
+            <span class="var">output</span><span class="op">=</span><span class="str">"Target system ready. Find 5 flags."</span><span class="op">,</span>
+            <span class="var">done</span><span class="op">=</span><span class="kw">False</span><span class="op">,</span> <span class="var">reward</span><span class="op">=</span><span class="num">0.0</span>
+        <span class="op">)</span>
+
+    <span class="kw">def</span> <span class="fn">step</span><span class="op">(</span><span class="var">self</span><span class="op">,</span> <span class="var">action</span><span class="op">,</span> <span class="var">timeout_s</span><span class="op">=</span><span class="kw">None</span><span class="op">,</span>
+             <span class="op">**</span><span class="var">kwargs</span><span class="op">) -></span> <span class="cls">HackObservation</span><span class="op">:</span>
+        <span class="var">self</span><span class="op">.</span><span class="var">_state</span><span class="op">.</span><span class="var">step_count</span> <span class="op">+=</span> <span class="num">1</span>
+        <span class="var">obs</span> <span class="op">=</span> <span class="kw">super</span><span class="op">().</span><span class="fn">step</span><span class="op">(</span><span class="var">action</span><span class="op">,</span> <span class="var">timeout_s</span><span class="op">)</span>
+
+        <span class="cm"># Compute reward: +1 per new flag</span>
+        <span class="var">new_flags</span> <span class="op">=</span> <span class="fn">len</span><span class="op">(</span><span class="var">self</span><span class="op">.</span><span class="var">_found</span><span class="op">)</span>
+        <span class="var">reward</span> <span class="op">=</span> <span class="var">new_flags</span> <span class="op">/</span> <span class="fn">len</span><span class="op">(</span><span class="var">self</span><span class="op">.</span><span class="var">FLAGS</span><span class="op">)</span>
+        <span class="var">done</span> <span class="op">=</span> <span class="var">new_flags</span> <span class="op">==</span> <span class="fn">len</span><span class="op">(</span><span class="var">self</span><span class="op">.</span><span class="var">FLAGS</span><span class="op">)</span>
+
+        <span class="var">self</span><span class="op">.</span><span class="var">_state</span><span class="op">.</span><span class="var">vulnerabilities_found</span> <span class="op">=</span> <span class="var">new_flags</span>
+        <span class="kw">return</span> <span class="cls">HackObservation</span><span class="op">(</span>
+            <span class="var">output</span><span class="op">=</span><span class="var">obs</span><span class="op">.</span><span class="var">output</span><span class="op">,</span>
+            <span class="var">flags_found</span><span class="op">=</span><span class="fn">list</span><span class="op">(</span><span class="var">self</span><span class="op">.</span><span class="var">_found</span><span class="op">),</span>
+            <span class="var">reward</span><span class="op">=</span><span class="var">reward</span><span class="op">,</span> <span class="var">done</span><span class="op">=</span><span class="var">done</span>
+        <span class="op">)</span>
+
+    <span class="dec">@property</span>
+    <span class="kw">def</span> <span class="fn">state</span><span class="op">(</span><span class="var">self</span><span class="op">) -></span> <span class="cls">HackState</span><span class="op">:</span>
+        <span class="kw">return</span> <span class="var">self</span><span class="op">.</span><span class="var">_state</span></pre>
+      <div class="note-box note-green">
+        <strong>Key patterns:</strong> MCP tools defined in __init__ with @mcp.tool. Environment computes rewards internally (never the agent). State tracks episode progress.
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
