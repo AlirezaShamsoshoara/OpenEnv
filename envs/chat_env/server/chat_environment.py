@@ -18,7 +18,15 @@ from openenv.core.env_server.interfaces import (
     Transform,
 )
 
-from ..models import ChatAction, ChatObservation, ChatState
+# Support both in-repo and standalone imports
+try:
+    # In-repo imports (when running from OpenEnv repository)
+    from ..models import ChatAction, ChatObservation, ChatState
+except ImportError as e:
+    if "relative import" not in str(e) and "no known parent package" not in str(e):
+        raise
+    # Standalone imports (when running via uvicorn server.app:app)
+    from models import ChatAction, ChatObservation, ChatState
 
 
 class ChatEnvironment(Environment):
@@ -46,8 +54,12 @@ class ChatEnvironment(Environment):
     ):
         super().__init__(transform=transform)
 
-        if not hasattr(tokenizer, "apply_chat_template"):
-            raise ValueError("Tokenizer must have 'apply_chat_template' method")
+        if not hasattr(tokenizer, "apply_chat_template") and not hasattr(
+            tokenizer, "encode"
+        ):
+            raise ValueError(
+                "Tokenizer must have 'apply_chat_template' or 'encode' method"
+            )
         self.tokenizer = tokenizer
         self.system_prompt = system_prompt
         self.system_role = system_role
@@ -57,13 +69,37 @@ class ChatEnvironment(Environment):
         if system_prompt:
             system_message: Message = {"role": system_role, "content": system_prompt}
             self._state.history_messages.append(system_message)
-            # Tokenize the system message
-            system_tokens = self.tokenizer.apply_chat_template(
-                conversation=[system_message],
-                tokenize=True,
-                return_tensors="pt",  # type: ignore
-            )
+            system_tokens = self._tokenize_conversation([system_message])
             self._state.history_tokens.append(system_tokens)
+
+    def _tokenize_conversation(self, conversation: list[Message]) -> torch.Tensor:
+        """Tokenize a conversation with a chat-template fallback for base tokenizers."""
+        try:
+            tokens = self.tokenizer.apply_chat_template(
+                conversation=conversation,
+                tokenize=True,
+                return_tensors="pt",  # type: ignore[arg-type]
+            )
+        except Exception:
+            # Some tokenizers (e.g. gpt2) do not define `chat_template`.
+            fallback_text = "".join(
+                f"{m['role']}: {m['content']}\n" for m in conversation
+            )
+            if hasattr(self.tokenizer, "encode"):
+                try:
+                    tokens = self.tokenizer.encode(  # type: ignore[attr-defined]
+                        fallback_text,
+                        return_tensors="pt",
+                    )
+                except TypeError:
+                    token_ids = self.tokenizer.encode(fallback_text)  # type: ignore[attr-defined]
+                    tokens = torch.tensor([token_ids], dtype=torch.long)
+            else:
+                raise ValueError("Tokenizer must support apply_chat_template or encode")
+
+        if isinstance(tokens, torch.Tensor):
+            return tokens
+        return torch.tensor(tokens, dtype=torch.long)
 
     def reset(self) -> ChatObservation:
         """Reset the environment to initial state.
@@ -79,12 +115,7 @@ class ChatEnvironment(Environment):
                 "content": self.system_prompt,
             }
             self._state.history_messages = [system_message]
-            # Tokenize the system message
-            system_tokens = self.tokenizer.apply_chat_template(
-                conversation=[system_message],
-                tokenize=True,
-                return_tensors="pt",  # type: ignore
-            )
+            system_tokens = self._tokenize_conversation([system_message])
             self._state.history_tokens = [system_tokens]
 
         return self._create_observation()
@@ -98,12 +129,14 @@ class ChatEnvironment(Environment):
         Returns:
             ChatObservation: The updated observation with the new tokens added.
         """
+        action_tokens = torch.tensor(action.tokens, dtype=torch.long)
+
         # Store the tokens directly from the action
-        self._state.history_tokens.append(action.tokens)
+        self._state.history_tokens.append(action_tokens)
 
         # Decode tokens to text and add as a message to history
         decoded_text = self.tokenizer.decode(
-            action.tokens.squeeze(), skip_special_tokens=True
+            action_tokens.squeeze(), skip_special_tokens=True
         )
         assistant_message: Message = {"role": "assistant", "content": decoded_text}
         self._state.history_messages.append(assistant_message)
@@ -129,7 +162,7 @@ class ChatEnvironment(Environment):
 
         observation = ChatObservation(
             messages=self._state.history_messages.copy(),  # Copy to prevent external mutation
-            tokens=flattened_tokens,
+            tokens=flattened_tokens.tolist(),
         )
 
         transformed = self._apply_transform(observation)
@@ -139,7 +172,7 @@ class ChatEnvironment(Environment):
             # If transform returns base Observation, convert back to ChatObservation
             return ChatObservation(
                 messages=getattr(transformed, "messages", []),
-                tokens=getattr(transformed, "tokens", torch.tensor([])),
+                tokens=getattr(transformed, "tokens", []),
                 done=transformed.done,
                 reward=transformed.reward,
             )
@@ -172,11 +205,6 @@ class ChatEnvironment(Environment):
         if message["content"] is None:
             raise ValueError("Message content cannot be None")
 
-        # Tokenize the single message
-        tokens = self.tokenizer.apply_chat_template(
-            conversation=[message],
-            tokenize=True,
-            return_tensors="pt",  # type: ignore
-        )
+        tokens = self._tokenize_conversation([message])
 
-        return ChatAction(tokens=tokens)
+        return ChatAction(tokens=tokens.flatten().tolist())
