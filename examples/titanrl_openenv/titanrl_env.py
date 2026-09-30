@@ -132,7 +132,13 @@ class OpenEnvMessageEnv(MessageEnv):
         # Task-specific shaping read off the raw observation, reported under its
         # own keys so the rubric can weight it separately from the env's reward.
         if self._profile.shaping is not None:
-            env_rewards.update(self._profile.shaping(turn.raw_observation))
+            observation = turn.raw_observation
+            if isinstance(observation, dict):
+                # The wire format moves reward/done onto the StepResult; put them
+                # back, as the renderer gets them, so shaping can tell a
+                # finished game from an ongoing position.
+                observation = {**observation, "reward": turn.reward, "done": turn.done}
+            env_rewards.update(self._profile.shaping(observation))
 
         return MessageEnvStepOutput(
             env_messages=env_messages,

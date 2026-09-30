@@ -181,7 +181,8 @@ def test_30b_recipe_keeps_adam_moments_in_bf16(name):
     # At 30B on 95 GiB cards, fp32 moments leave too little headroom for the
     # weight push's bf16 copy when it overlaps the next forward/backward (it
     # does right after a mid-run checkpoint save): the run OOMed at step 51.
-    assert _load(name).trainer.optimizer.implementation == "fused_opt_states_bf16"
+    optimizers = _load(name).trainer.optimizer.optimizers
+    assert [o.moment_dtype for o in optimizers] == ["bfloat16"]
 
 
 def test_smoke_recipe_skips_the_mid_run_checkpoint():
@@ -253,6 +254,39 @@ def test_shaping_reward_builds_its_own_class():
     shaping = OpenEnvShapingReward.Config(reward_name=CHESS_POSITION_REWARD).build()
     assert type(shaping) is OpenEnvShapingReward
     assert type(OpenEnvReward.Config().build()) is OpenEnvReward
+
+
+def test_env_passes_the_game_outcome_to_shaping():
+    # The wire format strips reward/done from the observation; the env must put
+    # them back before shaping, or a finished game is scored by a static
+    # evaluation taken from the wrong side of the board.
+    from titanrl_openenv.data import OpenEnvSample
+    from titanrl_openenv.openenv_bridge import BridgeTurn
+    from titanrl_openenv.titanrl_env import OpenEnvMessageEnv
+
+    worker = config_registry._openenv_chess_rollouter_config().worker
+    env = worker.message_env.build(env_input=OpenEnvSample())
+    won = BridgeTurn(
+        text="Game over — result 1-0.",
+        done=True,
+        reward=1.0,
+        raw_observation={
+            "fen": "k7/8/8/8/8/8/8/K7 b - - 0 1",
+            "metadata": {"evaluation": -900.0},
+        },
+    )
+
+    async def act(_tool_calls):
+        return won
+
+    env._bridge.act_from_tool_calls = act
+    call = {"name": "chess_move", "arguments": {"move": "a1a2"}}
+    out = asyncio.run(
+        env.step({"role": "assistant", "content": "", "tool_calls": [call]})
+    )
+    assert isinstance(env, OpenEnvMessageEnv)
+    assert out.done
+    assert out.env_rewards == {"openenv": 1.0, CHESS_POSITION_REWARD: 1.0}
 
 
 @pytest.mark.parametrize(

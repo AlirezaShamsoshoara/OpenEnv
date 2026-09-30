@@ -79,7 +79,10 @@ class TaskProfile:
             generic :func:`~examples.titanrl_openenv.openenv_bridge.render_observation`.
         shaping: Observation -> extra ``{reward_name: value}`` entries, merged
             into the turn's ``env_rewards`` alongside the environment's own
-            reward. ``None`` means the environment's reward is the only signal.
+            reward. It receives the observation with the step's ``reward`` and
+            ``done`` put back in (the OpenEnv wire format moves them onto the
+            step result). ``None`` means the environment's reward is the only
+            signal.
             Use it when that reward is too sparse for GRPO to separate siblings
             on; each key is scored by its own ``OpenEnvReward`` in the rubric.
     """
@@ -139,9 +142,13 @@ def render_chess_observation(observation: Any) -> str:
 
     lines: list[str] = []
 
+    # A rejected move pays -0.1 and leaves the game running; a lost game pays
+    # -1.0 and ends it, so only a negative reward mid-game means "rejected".
     reward = observation.get("reward")
     try:
-        rejected = reward is not None and float(reward) < 0.0
+        rejected = (
+            reward is not None and float(reward) < 0.0 and not observation.get("done")
+        )
     except (TypeError, ValueError):
         rejected = False
     if rejected:
@@ -201,14 +208,26 @@ def chess_position_rewards(observation: Any) -> dict[str, float]:
     reward under :data:`CHESS_POSITION_REWARD`, so "played four moves and came
     out a pawn up" scores above "played four moves and hung a knight".
 
-    No sign correction is needed: moonfish evaluates from the side to move's
-    point of view, and the agent is always the side to move in an observation
-    (the environment plays the opponent's reply before returning). That holds
-    for either color — ``ChessEnvironment`` alternates the agent between white
-    and black across episodes.
+    No sign correction is needed mid-game: moonfish evaluates from the side to
+    move's point of view, and the agent is the side to move in every ongoing
+    observation (the environment plays the opponent's reply before returning),
+    for either color. A finished game is scored by its outcome instead — the
+    environment's terminal reward, +1 / 0 / -1 for a win / draw / loss — both
+    because the result beats any static evaluation and because after the
+    agent's own game-ending move the opponent never replies, so the evaluation
+    would be from the opponent's side. That needs ``reward`` and ``done`` in the
+    observation; the OpenEnv wire format moves them onto the step result, so
+    callers put them back — :class:`~examples.titanrl_openenv.titanrl_env.OpenEnvMessageEnv`
+    passes ``{**turn.raw_observation, "reward": turn.reward, "done": turn.done}``.
     """
     if not isinstance(observation, dict):
         return {}
+    if observation.get("done"):
+        try:
+            outcome = float(observation.get("reward"))
+        except (TypeError, ValueError):
+            return {}
+        return {CHESS_POSITION_REWARD: max(-1.0, min(1.0, outcome))}
     metadata = observation.get("metadata")
     if not isinstance(metadata, dict):
         return {}

@@ -208,7 +208,7 @@ python examples/titanrl_openenv/run_bridge_demo.py
 
 # Run the tests (unit + live in-process WebSocket round-trips). The 7 tests
 # that need the real chess env are skipped if python-chess/moonfish are missing.
-pytest examples/titanrl_openenv/tests/test_bridge.py -v   # 48 passed
+pytest examples/titanrl_openenv/tests/test_bridge.py -v   # 54 passed
 ```
 
 Expected demo output (abridged):
@@ -231,7 +231,7 @@ rollouts through TitanRL's own `Rubric`. Run it from the torchtitan root with
 the `PYTHONPATH` above:
 
 ```bash
-pytest /path/to/OpenEnv/examples/titanrl_openenv/tests/test_recipes.py   # 31 passed
+pytest /path/to/OpenEnv/examples/titanrl_openenv/tests/test_recipes.py   # 32 passed
 ```
 
 Point the bridge at your own environment by changing `base_url`:
@@ -371,11 +371,12 @@ recorded in the run below (step 1) show the difference:
 | 15/2 | 4 | 0.0 | −0.38 |
 | 10/0 | 3 | 0.0 | −0.41 |
 
-No sign correction is needed: moonfish evaluates from the side to move's point
-of view, and the agent is always the side to move in an observation (the
-environment plays the opponent's reply before returning). That holds for either
-color — `ChessEnvironment` alternates the agent between white and black across
-episodes.
+No sign correction is needed mid-game: moonfish evaluates from the side to
+move's point of view, and the agent is the side to move in every ongoing
+observation (the environment plays the opponent's reply before returning), for
+either color. A finished game is scored by its outcome instead — +1 / 0 / −1 for
+a win / draw / loss — since after the agent's own game-ending move the opponent
+never replies and the evaluation would be from the other side.
 
 > **Do not reach for `Rubric.Config.truncation_reward` here.** It looks like the
 > fix — penalize the rollouts that ran out of tokens — but it *short-circuits
@@ -458,7 +459,7 @@ machine entirely if you point `base_url` at it.
 Four things constrain this layout, and all four were found by hitting or
 measuring them:
 
-- **Adam's moments are kept in bf16** (`implementation="fused_opt_states_bf16"`;
+- **Adam's moments are kept in bf16** (`AdamW.Config(..., moment_dtype="bfloat16")`;
   parameters and updates stay fp32), and at this size that is what makes the
   layout fit. TitanRL's weight push to the generator holds a bf16 copy of every
   weight shard (~8.7 GiB per trainer GPU) and, right after a mid-run checkpoint

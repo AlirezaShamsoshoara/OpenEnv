@@ -270,6 +270,44 @@ async def test_custom_observation_renderer_overrides_default():
     assert turn.text == "score=3"
 
 
+async def test_bridge_tells_the_chess_renderer_that_a_lost_game_is_over():
+    # The wire format moves reward/done onto the StepResult; the bridge must put
+    # them back for the renderer, or a lost game (-1.0) reads as a rejected move.
+    start = {
+        "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        "legal_moves": ["f2f3", "e2e4"],
+        "is_check": False,
+        "result": None,
+    }
+    mated = {
+        "fen": "rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3",
+        "legal_moves": [],
+        "is_check": True,
+        "result": "0-1",
+        "metadata": {"evaluation": 150.0},
+    }
+    client = ScriptedClient(
+        [
+            StepResult(observation=start),
+            StepResult(observation=mated, reward=-1.0, done=True),
+        ]
+    )
+    bridge = OpenEnvBridge(
+        client=client,
+        tool_action_key=CHESS_TASK.tool_action_key,
+        observation_renderer=CHESS_TASK.render,
+    )
+    await bridge.start()
+    call = {"name": "chess_move", "arguments": {"move": "g2g4"}}
+    turn = await bridge.act_from_tool_calls([call])
+    assert turn.done and turn.reward == -1.0
+    assert "rejected" not in turn.text
+    assert "Game over" in turn.text
+    # Given the same view the TitanRL env builds, shaping scores the loss.
+    merged = {**turn.raw_observation, "reward": turn.reward, "done": turn.done}
+    assert chess_position_rewards(merged) == {CHESS_POSITION_REWARD: -1.0}
+
+
 # --------------------------------------------------------------------------- #
 # Task profiles
 # --------------------------------------------------------------------------- #
@@ -327,6 +365,16 @@ def test_render_chess_observation_flags_rejected_move():
     assert "Legal moves" in rendered
 
 
+def test_render_chess_observation_does_not_call_a_lost_game_a_rejected_move():
+    # A loss pays -1.0 and ends the game; only a negative reward mid-game means
+    # the move was rejected.
+    rendered = render_chess_observation(
+        _chess_obs(reward=-1.0, done=True, result="0-1")
+    )
+    assert "rejected" not in rendered
+    assert "Game over" in rendered
+
+
 def test_render_chess_observation_reports_check_and_result():
     rendered = render_chess_observation(
         _chess_obs(is_check=True, done=True, result="1-0", reward=1.0)
@@ -355,6 +403,21 @@ def test_chess_position_reward_is_signed_and_bounded():
     )
     assert behind[CHESS_POSITION_REWARD] == pytest.approx(-ahead[CHESS_POSITION_REWARD])
     assert -1.0 < behind[CHESS_POSITION_REWARD] < 0 < ahead[CHESS_POSITION_REWARD] < 1.0
+
+
+@pytest.mark.parametrize(
+    ("outcome", "expected"), [(1.0, 1.0), (0.0, 0.0), (-1.0, -1.0)]
+)
+def test_chess_position_reward_scores_a_finished_game_by_its_outcome(outcome, expected):
+    # After the agent's own game-ending move the opponent never replies, so the
+    # evaluation is from the opponent's side -- here it says the agent is losing
+    # badly even when it just won. The outcome is what counts.
+    finished = _chess_obs(done=True, reward=outcome, metadata={"evaluation": -900.0})
+    assert chess_position_rewards(finished) == {CHESS_POSITION_REWARD: expected}
+
+
+def test_chess_position_reward_skips_a_finished_game_without_a_reward():
+    assert chess_position_rewards(_chess_obs(done=True, reward=None)) == {}
 
 
 def test_chess_position_reward_separates_positions_the_env_scores_identically():
@@ -523,7 +586,9 @@ async def test_live_roundtrip_chess_env_tool_mode():
 
             # The environment reports its evaluation of the position it just
             # reached, which is what the shaping reward is derived from.
-            shaped = chess_position_rewards(turn.raw_observation)
+            shaped = chess_position_rewards(
+                {**turn.raw_observation, "reward": turn.reward, "done": turn.done}
+            )
             assert -1.0 < shaped[CHESS_POSITION_REWARD] < 1.0
         finally:
             await bridge.stop()
